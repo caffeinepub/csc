@@ -1,17 +1,21 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 7,
-  "summary": "Website for “वैष्णवी ई-मित्र & CSC केन्द्र” (E-Mitra & CSC centre) in कोटा (माम), करौली, showcasing services, address, and contact details (Operator: Rahul Chavariya).",
+  "projectStateVersion": 13,
+  "summary": "Website for “वैष्णवी ई-मित्र & CSC केन्द्र” (E-Mitra & CSC centre) in कोटा (माम), करौली, showcasing services/contact/inquiry form, and now additionally includes an “Official Login” (custom username/password) to access and restore the admin/management dashboard.",
   "architectural_notes": [
     "Site content/language: Hindi promotional content for Vaishnavi E-Mitra & CSC centre.",
     "Key business details to display: Operator Rahul Chavariya; phone/WhatsApp +91-7426049215; location/address in Kota (Mam), Karauli.",
-    "Add a hidden /admin route protected by Internet Identity login to allow only the operator to view/manage form submissions.",
-    "Notification requirement clarified: notify only on new inquiry form submissions; preferred channel is email (WhatsApp requested but not supported on this platform)."
+    "Notification requirement clarified: notify only on new inquiry form submissions; preferred channel is email (WhatsApp requested but not supported on this platform).",
+    "User requested removal of all Admin options (no /admin dashboard and no homepage Admin Login/Admin Access section).",
+    "Reintroduce an admin/management area accessed via a custom local username/password (“Official Login”) on the homepage (note: not as secure as Internet Identity).",
+    "Login credentials specified by user: User ID K107182721; Password Karauli#34.",
+    "Post-login should restore the previous admin dashboard features (inquiry management: view/delete/mark read-unread/export).",
+    "Logout/close-tab behavior requested: return to homepage and show only “Official Login” entry (hide public sections per latest confirmation)."
   ],
   "known_issues": [
     "Attempt to publish Draft Version 2 live/production encountered a deployment error; user requested to try going live again."
   ],
-  "isFixRequest": true,
+  "isFixRequest": false,
   "existing_features": [
     {
       "id": "feature-create-a-responsive-informational-website-for-csc-that-presents-the-business-name-tagline-location-operator-name-rahul-chavariya-and-contact-whatsapp-number-91-7426049215-using-the-user-provided-hindi-content-as-the-primary-copy",
@@ -100,6 +104,110 @@
         "REQ-13"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-add-a-new-dedicated-admin-login-section-to-the-home-landing-page-that-includes-an-admin-access-button-clicking-the-button-expands-collapses-and-reveals-the-existing-internet-identity-login-ui-reuse-the-existing-adminloginprompt-component-rather-than-duplicating-login-logic",
+      "title": "Add a new dedicated \"Admin Login\" section to the home/landing page that includes an \"Admin Access\" button; clicking the button expands/collapses and reveals the existing Internet Identity login UI (reuse the existing AdminLoginPrompt component rather than duplicating login logic).",
+      "reqIds": [
+        "REQ-14"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-after-a-successful-internet-identity-login-from-the-new-home-page-admin-login-section-redirect-the-authenticated-user-to-the-existing-admin-dashboard-route",
+      "title": "After a successful Internet Identity login from the new home-page Admin Login section, redirect the authenticated user to the existing /admin dashboard route.",
+      "reqIds": [
+        "REQ-15"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-publish-the-updated-build-to-production-live-and-verify-the-deployed-site-loads-without-build-deploy-errors-including-the-homepage-and-admin-route",
+      "title": "Publish the updated build to production (live) and verify the deployed site loads without build/deploy errors, including the homepage and /admin route.",
+      "reqIds": [
+        "REQ-16"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-remove-all-admin-entry-points-from-the-public-marketing-site-ui-by-deleting-the-admin-login-section-from-the-homepage-and-removing-any-navigation-items-anchors-that-link-to-admin-access",
+      "title": "Remove all admin entry points from the public marketing site UI by deleting the Admin Login section from the homepage and removing any navigation items/anchors that link to admin access.",
+      "reqIds": [
+        "REQ-17"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-disable-the-admin-route-in-the-spa-so-the-admin-dashboard-cannot-be-accessed-visiting-admin-with-or-without-a-trailing-slash-must-no-longer-render-the-admin-page-and-must-instead-redirect-to-the-homepage-or-show-a-simple-not-found-disabled-message-page",
+      "title": "Disable the /admin route in the SPA so the admin dashboard cannot be accessed; visiting /admin (with or without a trailing slash) must no longer render the admin page and must instead redirect to the homepage (/) or show a simple not-found/disabled message page.",
+      "reqIds": [
+        "REQ-18"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-remove-the-admin-static-entry-redirect-so-the-dedicated-admin-entry-point-no-longer-attempts-to-route-users-into-admin-mode-update-frontend-public-admin-index-html-to-redirect-to-the-homepage-without-any-admin-redirect-flags",
+      "title": "Remove the admin static entry redirect so the dedicated admin entry point no longer attempts to route users into admin mode (update frontend/public/admin/index.html to redirect to the homepage without any admin redirect flags).",
+      "reqIds": [
+        "REQ-19"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-the-public-inquiry-submission-flow-remains-fully-functional-after-removing-admin-ui-the-inquiry-form-can-still-be-submitted-successfully-and-the-user-sees-the-existing-success-feedback",
+      "title": "Ensure the public inquiry submission flow remains fully functional after removing admin UI: the inquiry form can still be submitted successfully and the user sees the existing success feedback.",
+      "reqIds": [
+        "REQ-20"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-an-official-login-entry-point-on-the-homepage-and-remove-avoid-any-other-admin-entry-points-that-prompts-for-a-user-id-and-password-and-validates-against-the-exact-credentials-user-id-k107182721-and-password-karauli-34",
+      "title": "Add an \"Official Login\" entry point on the homepage (and remove/avoid any other admin entry points) that prompts for a User ID and Password and validates against the exact credentials: User ID \"K107182721\" and Password \"Karauli#34\".",
+      "reqIds": [
+        "REQ-21"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-a-session-based-official-login-state-that-persists-only-for-the-current-browser-tab-session-and-is-cleared-on-explicit-logout-and-on-tab-window-close-when-logged-out-the-user-is-returned-to-the-normal-homepage-view",
+      "title": "Implement a session-based official-login state that persists only for the current browser tab/session and is cleared on explicit logout and on tab/window close; when logged out, the user is returned to the normal homepage view.",
+      "reqIds": [
+        "REQ-22"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-re-enable-and-restore-the-admin-management-dashboard-ui-at-route-admin-to-allow-the-logged-in-official-user-to-view-inquiry-submissions-and-perform-actions-delete-mark-as-read-unread-and-export-download-submissions",
+      "title": "Re-enable and restore the admin/management dashboard UI at route \"/admin\" to allow the logged-in official user to view inquiry submissions and perform actions: delete, mark as read/unread, and export/download submissions.",
+      "reqIds": [
+        "REQ-23"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-spa-routing-behavior-so-admin-is-no-longer-force-redirected-to-when-the-user-is-officially-logged-in-while-preserving-the-redirect-guard-for-non-logged-in-users",
+      "title": "Update SPA routing behavior so \"/admin\" is no longer force-redirected to \"/\" when the user is officially logged in, while preserving the redirect/guard for non-logged-in users.",
+      "reqIds": [
+        "REQ-24"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-static-entrypoint-at-frontend-public-admin-index-html-to-no-longer-immediately-redirect-to-so-that-direct-navigation-to-admin-can-load-the-spa-and-show-the-admin-dashboard-for-an-authenticated-official-session",
+      "title": "Update the static entrypoint at frontend/public/admin/index.html to no longer immediately redirect to \"/\" so that direct navigation to \"/admin\" can load the SPA and show the admin dashboard for an authenticated official session.",
+      "reqIds": [
+        "REQ-25"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-react-query-hooks-for-the-restored-admin-inquiry-operations-list-mark-read-unread-delete-export-and-ensure-the-ui-stays-consistent-by-invalidating-refetching-inquiries-after-mutations",
+      "title": "Implement React Query hooks for the restored admin inquiry operations (list, mark read/unread, delete, export) and ensure the UI stays consistent by invalidating/refetching inquiries after mutations.",
+      "reqIds": [
+        "REQ-27"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -124,23 +232,35 @@
       "status": "pending"
     },
     {
-      "id": "AR-7",
-      "summary": "Add a private /admin page to view website form submissions, protected with Internet Identity login, with actions like delete, mark-as-read, and download/export.",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-11",
-      "summary": "Extend the backend inquiry model and API to support a read/unread status and exporting data for the admin page, while keeping inquiry submission public as it is now.",
-      "reqIds": [
-        "REQ-11"
-      ],
-      "status": "pending"
-    },
-    {
       "id": "AR-12",
       "summary": "Send operator notifications for new website inquiry form submissions via email (since WhatsApp notifications were requested but are not supported).",
       "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-13",
+      "summary": "Add an “Official Login” entry point on the homepage using a custom local username/password (User ID: K107182721, Password: Karauli#34).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-14",
+      "summary": "After successful “Official Login”, restore/enable the admin management dashboard (view inquiries, delete, mark read/unread, export).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-15",
+      "summary": "Implement login session/logout behavior: logging out or closing the tab should return the user to the homepage with only the “Official Login” button visible.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-21",
+      "summary": "Extend the Motoko backend (single actor in backend/main.mo) with access-controlled inquiry management APIs needed by the restored admin dashboard: list inquiries, delete inquiry, and set read/unread, plus an export-friendly retrieval method if needed by the frontend.",
+      "reqIds": [
+        "REQ-26"
+      ],
       "status": "pending"
     }
   ],

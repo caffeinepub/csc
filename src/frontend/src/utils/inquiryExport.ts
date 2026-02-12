@@ -1,20 +1,44 @@
-import { Inquiry } from '../backend';
+import { Inquiry, InquiryType } from '../backend';
 
-export function exportInquiriesToJSON(inquiries: Inquiry[]) {
+function escapeCSV(value: string | undefined | null): string {
+  if (!value) return '';
+  const stringValue = String(value);
+  if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
+    return `"${stringValue.replace(/"/g, '""')}"`;
+  }
+  return stringValue;
+}
+
+function formatTimestamp(timestamp: bigint): string {
+  const date = new Date(Number(timestamp) / 1000000);
+  return date.toLocaleString('hi-IN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  });
+}
+
+function getInquiryTypeLabel(type: InquiryType): string {
+  return type === InquiryType.contact ? 'संपर्क' : 'सेवा अनुरोध';
+}
+
+export function exportToJSON(inquiries: Inquiry[]): void {
   const dataStr = JSON.stringify(inquiries, null, 2);
-  const dataBlob = new Blob([dataStr], { type: 'application/json' });
-  const url = URL.createObjectURL(dataBlob);
-  
+  const blob = new Blob([dataStr], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
-  link.download = `inquiries-${new Date().toISOString().split('T')[0]}.json`;
+  link.download = `inquiries-${Date.now()}.json`;
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
 }
 
-export function exportInquiriesToCSV(inquiries: Inquiry[]) {
+export function exportToCSV(inquiries: Inquiry[]): void {
   const headers = [
     'ID',
     'Timestamp',
@@ -22,50 +46,32 @@ export function exportInquiriesToCSV(inquiries: Inquiry[]) {
     'Name',
     'Phone',
     'Email',
-    'Service Category',
     'Message',
-    'Internal',
-    'Read',
+    'Service Category',
+    'Read Status',
   ];
 
-  const rows = inquiries.map((inquiry) => {
-    const date = new Date(Number(inquiry.timestamp) / 1000000);
-    const formattedDate = date.toLocaleString('en-IN');
-    
-    return [
-      inquiry.id.toString(),
-      formattedDate,
-      inquiry.inquiryType === 'contact' ? 'Contact' : 'Service Request',
-      escapeCSV(inquiry.name),
-      inquiry.phoneNumber,
-      inquiry.email || '',
-      inquiry.serviceCategory || '',
-      escapeCSV(inquiry.message),
-      inquiry.internal ? 'Yes' : 'No',
-      inquiry.read ? 'Yes' : 'No',
-    ];
-  });
+  const rows = inquiries.map((inquiry) => [
+    inquiry.id.toString(),
+    formatTimestamp(inquiry.timestamp),
+    getInquiryTypeLabel(inquiry.inquiryType),
+    escapeCSV(inquiry.name),
+    escapeCSV(inquiry.phoneNumber),
+    escapeCSV(inquiry.email || ''),
+    escapeCSV(inquiry.message),
+    escapeCSV(inquiry.serviceCategory || ''),
+    inquiry.read ? 'पढ़ा गया' : 'अपठित',
+  ]);
 
-  const csvContent = [
-    headers.join(','),
-    ...rows.map((row) => row.join(',')),
-  ].join('\n');
+  const csvContent = [headers.join(','), ...rows.map((row) => row.join(','))].join('\n');
 
-  const dataBlob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(dataBlob);
-  
+  const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
-  link.download = `inquiries-${new Date().toISOString().split('T')[0]}.csv`;
+  link.download = `inquiries-${Date.now()}.csv`;
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
-}
-
-function escapeCSV(text: string): string {
-  if (text.includes(',') || text.includes('"') || text.includes('\n')) {
-    return `"${text.replace(/"/g, '""')}"`;
-  }
-  return text;
 }

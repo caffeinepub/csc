@@ -1,122 +1,96 @@
 import { useEffect } from 'react';
-import { useInternetIdentity } from '../hooks/useInternetIdentity';
-import { useGetCallerUserProfile, useIsCallerAdmin } from '../hooks/useAdminInquiries';
-import AdminLoginPrompt from '../components/admin/AdminLoginPrompt';
-import InquiryList from '../components/admin/InquiryList';
+import { useOfficialLogin } from '../hooks/useOfficialLogin';
+import { useGetAllInquiries } from '../hooks/useAdminInquiries';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertCircle, Loader2 } from 'lucide-react';
+import InquiryList from '../components/admin/InquiryList';
+import { BulkExportActions } from '../components/admin/InquiryActions';
+import { LogOut, Loader2, AlertCircle, Inbox } from 'lucide-react';
 import BrandMark from '../components/BrandMark';
 
 export default function AdminPage() {
-  const { identity, isInitializing } = useInternetIdentity();
-  const isAuthenticated = !!identity;
+  const { isOfficiallyLoggedIn, logout } = useOfficialLogin();
+  const { data: inquiries, isLoading, error, refetch } = useGetAllInquiries();
 
-  const { data: userProfile, isLoading: profileLoading, isFetched: profileFetched } = useGetCallerUserProfile();
-  const { data: isAdmin, isLoading: adminCheckLoading, error: adminError } = useIsCallerAdmin();
+  useEffect(() => {
+    if (!isOfficiallyLoggedIn) {
+      window.history.replaceState(null, '', '/');
+      window.location.href = '/';
+    }
+  }, [isOfficiallyLoggedIn]);
 
-  // Show loading state while initializing or checking authentication
-  if (isInitializing || (isAuthenticated && (profileLoading || adminCheckLoading))) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
-          <p className="text-muted-foreground">लोड हो रहा है...</p>
-        </div>
-      </div>
-    );
+  const handleLogout = () => {
+    logout();
+    window.history.replaceState(null, '', '/');
+    window.location.href = '/';
+  };
+
+  if (!isOfficiallyLoggedIn) {
+    return null;
   }
 
-  // Show login prompt if not authenticated
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-background">
-        <header className="border-b bg-card">
-          <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <BrandMark size="sm" />
-              <h1 className="text-xl font-bold">Admin Panel</h1>
-            </div>
-          </div>
-        </header>
-        <main className="container mx-auto px-4 py-12">
-          <AdminLoginPrompt />
-        </main>
-      </div>
-    );
-  }
-
-  // Show unauthorized message if not admin
-  if (isAuthenticated && profileFetched && isAdmin === false) {
-    return (
-      <div className="min-h-screen bg-background">
-        <header className="border-b bg-card">
-          <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <BrandMark size="sm" />
-              <h1 className="text-xl font-bold">Admin Panel</h1>
-            </div>
-            <AdminLoginPrompt />
-          </div>
-        </header>
-        <main className="container mx-auto px-4 py-12">
-          <Alert variant="destructive" className="max-w-2xl mx-auto">
-            <AlertCircle className="h-5 w-5" />
-            <AlertDescription className="text-base">
-              <strong>अनधिकृत पहुंच (Unauthorized Access)</strong>
-              <p className="mt-2">
-                आपके पास इस पेज को देखने की अनुमति नहीं है। केवल एडमिन यूजर्स ही इस पेज को एक्सेस कर सकते हैं।
-              </p>
-            </AlertDescription>
-          </Alert>
-        </main>
-      </div>
-    );
-  }
-
-  // Show error if admin check failed
-  if (adminError) {
-    return (
-      <div className="min-h-screen bg-background">
-        <header className="border-b bg-card">
-          <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <BrandMark size="sm" />
-              <h1 className="text-xl font-bold">Admin Panel</h1>
-            </div>
-            <AdminLoginPrompt />
-          </div>
-        </header>
-        <main className="container mx-auto px-4 py-12">
-          <Alert variant="destructive" className="max-w-2xl mx-auto">
-            <AlertCircle className="h-5 w-5" />
-            <AlertDescription>
-              एरर: {adminError instanceof Error ? adminError.message : 'कुछ गलत हो गया'}
-            </AlertDescription>
-          </Alert>
-        </main>
-      </div>
-    );
-  }
-
-  // Show admin dashboard if authenticated and authorized
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b bg-card sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <BrandMark size="sm" />
-            <div>
-              <h1 className="text-xl font-bold">Admin Panel</h1>
-              <p className="text-sm text-muted-foreground">
-                {userProfile?.name || 'Admin User'}
-              </p>
+      <header className="border-b bg-card sticky top-0 z-10">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <BrandMark size="sm" />
+              <div>
+                <h1 className="text-xl font-bold">Admin Dashboard</h1>
+                <p className="text-sm text-muted-foreground">पूछताछ प्रबंधन</p>
+              </div>
             </div>
+            <Button variant="outline" onClick={handleLogout}>
+              <LogOut className="mr-2 h-4 w-4" />
+              Logout
+            </Button>
           </div>
-          <AdminLoginPrompt />
         </div>
       </header>
+
       <main className="container mx-auto px-4 py-8">
-        <InquiryList />
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <Inbox className="h-5 w-5" />
+                  सभी पूछताछ
+                </CardTitle>
+                <CardDescription>सभी प्राप्त पूछताछ देखें और प्रबंधित करें</CardDescription>
+              </div>
+              {inquiries && inquiries.length > 0 && (
+                <BulkExportActions inquiries={inquiries} />
+              )}
+            </div>
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              </div>
+            ) : error ? (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  पूछताछ लोड करने में त्रुटि। कृपया पुनः प्रयास करें।
+                  <Button variant="outline" size="sm" onClick={() => refetch()} className="ml-4">
+                    पुनः प्रयास करें
+                  </Button>
+                </AlertDescription>
+              </Alert>
+            ) : inquiries && inquiries.length > 0 ? (
+              <InquiryList inquiries={inquiries} />
+            ) : (
+              <div className="text-center py-12 text-muted-foreground">
+                <Inbox className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>अभी तक कोई पूछताछ नहीं है</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </main>
     </div>
   );

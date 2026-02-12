@@ -33,14 +33,9 @@ export interface _SERVICE {
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
   'deleteInquiry' : ActorMethod<[bigint], undefined>,
-  'exportAllInquiries' : ActorMethod<[], Array<Inquiry>>,
   'getAllInquiries' : ActorMethod<[], Array<Inquiry>>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
-  'getFirstPublicInquiries' : ActorMethod<[bigint], Array<Inquiry>>,
-  'getFirstPublicInternalInquiries' : ActorMethod<[bigint], Array<Inquiry>>,
-  'getInquiry' : ActorMethod<[bigint], Inquiry>,
-  'getPublicInquiries' : ActorMethod<[], Array<Inquiry>>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
@@ -49,11 +44,6 @@ export interface _SERVICE {
     [InquiryType, string, string, [] | [string], string, [] | [string]],
     bigint
   >,
-  'submitInternalInquiry' : ActorMethod<
-    [InquiryType, string, string, [] | [string], string, [] | [string]],
-    bigint
-  >,
-  'updateInquiry' : ActorMethod<[bigint, Inquiry], undefined>,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];

@@ -1,8 +1,17 @@
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Phone, MessageCircle } from 'lucide-react';
+import { Phone, MessageCircle, ShieldCheck } from 'lucide-react';
 import { siteContent } from '../../content/siteContent';
+import OfficialLoginDialog from '../admin/OfficialLoginDialog';
 
 export default function HeroSection() {
+  const [loginDialogOpen, setLoginDialogOpen] = useState(false);
+
+  const handleLoginSuccess = () => {
+    window.history.pushState(null, '', '/admin');
+    window.location.href = '/admin';
+  };
+
   return (
     <section id="home" className="relative min-h-[600px] md:min-h-[700px] flex items-center pt-16 md:pt-20">
       <div className="absolute inset-0 overflow-hidden">
@@ -54,11 +63,29 @@ export default function HeroSection() {
             </Button>
           </div>
 
+          <div className="pt-8 flex justify-center">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setLoginDialogOpen(true)}
+              className="text-muted-foreground hover:text-foreground"
+            >
+              <ShieldCheck className="mr-2 h-4 w-4" />
+              Official Login
+            </Button>
+          </div>
+
           <div className="pt-4 text-sm text-muted-foreground">
             📍 {siteContent.business.location}
           </div>
         </div>
       </div>
+
+      <OfficialLoginDialog
+        open={loginDialogOpen}
+        onOpenChange={setLoginDialogOpen}
+        onSuccess={handleLoginSuccess}
+      />
     </section>
   );
 }

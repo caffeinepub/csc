@@ -1,10 +1,9 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import { useActor } from './useActor';
 import { InquiryType } from '../backend';
 
 export function useSubmitInquiry() {
   const { actor } = useActor();
-  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (data: {
@@ -27,9 +26,6 @@ export function useSubmitInquiry() {
       );
       
       return id;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['adminInquiries'] });
     },
   });
 }

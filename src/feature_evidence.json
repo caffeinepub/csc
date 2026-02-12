@@ -2,10 +2,92 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-investigate-and-fix-the-deployment-error-that-occurs-when-publishing-draft-version-2-to-production-live-ensuring-the-project-can-be-successfully-deployed-without-errors",
-      "featureTitle": "Investigate and fix the deployment error that occurs when publishing Draft Version 2 to production (live), ensuring the project can be successfully deployed without errors.",
+      "featureId": "feature-add-an-official-login-entry-point-on-the-homepage-and-remove-avoid-any-other-admin-entry-points-that-prompts-for-a-user-id-and-password-and-validates-against-the-exact-credentials-user-id-k107182721-and-password-karauli-34",
+      "featureTitle": "Add an \"Official Login\" entry point on the homepage (and remove/avoid any other admin entry points) that prompts for a User ID and Password and validates against the exact credentials: User ID \"K107182721\" and Password \"Karauli#34\".",
       "files": [
-        "frontend/public/404.html",
+        "frontend/src/components/admin/OfficialLoginDialog.tsx",
+        "frontend/src/components/sections/HeroSection.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-21"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-implement-a-session-based-official-login-state-that-persists-only-for-the-current-browser-tab-session-and-is-cleared-on-explicit-logout-and-on-tab-window-close-when-logged-out-the-user-is-returned-to-the-normal-homepage-view",
+      "featureTitle": "Implement a session-based official-login state that persists only for the current browser tab/session and is cleared on explicit logout and on tab/window close; when logged out, the user is returned to the normal homepage view.",
+      "files": [
+        "frontend/src/components/admin/OfficialLoginDialog.tsx",
+        "frontend/src/hooks/useOfficialLogin.ts",
+        "frontend/src/pages/AdminPage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-22"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-re-enable-and-restore-the-admin-management-dashboard-ui-at-route-admin-to-allow-the-logged-in-official-user-to-view-inquiry-submissions-and-perform-actions-delete-mark-as-read-unread-and-export-download-submissions",
+      "featureTitle": "Re-enable and restore the admin/management dashboard UI at route \"/admin\" to allow the logged-in official user to view inquiry submissions and perform actions: delete, mark as read/unread, and export/download submissions.",
+      "files": [
+        "frontend/src/components/admin/InquiryActions.tsx",
+        "frontend/src/components/admin/InquiryList.tsx",
+        "frontend/src/pages/AdminPage.tsx",
+        "frontend/src/utils/inquiryExport.ts"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-23"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-update-spa-routing-behavior-so-admin-is-no-longer-force-redirected-to-when-the-user-is-officially-logged-in-while-preserving-the-redirect-guard-for-non-logged-in-users",
+      "featureTitle": "Update SPA routing behavior so \"/admin\" is no longer force-redirected to \"/\" when the user is officially logged in, while preserving the redirect/guard for non-logged-in users.",
+      "files": [
+        "frontend/src/App.tsx",
+        "frontend/src/hooks/useOfficialLogin.ts"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-24"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-update-the-static-entrypoint-at-frontend-public-admin-index-html-to-no-longer-immediately-redirect-to-so-that-direct-navigation-to-admin-can-load-the-spa-and-show-the-admin-dashboard-for-an-authenticated-official-session",
+      "featureTitle": "Update the static entrypoint at frontend/public/admin/index.html to no longer immediately redirect to \"/\" so that direct navigation to \"/admin\" can load the SPA and show the admin dashboard for an authenticated official session.",
+      "files": [
         "frontend/public/admin/index.html",
         "frontend/src/App.tsx"
       ],
@@ -18,7 +100,29 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-13"
+        "REQ-25"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-implement-react-query-hooks-for-the-restored-admin-inquiry-operations-list-mark-read-unread-delete-export-and-ensure-the-ui-stays-consistent-by-invalidating-refetching-inquiries-after-mutations",
+      "featureTitle": "Implement React Query hooks for the restored admin inquiry operations (list, mark read/unread, delete, export) and ensure the UI stays consistent by invalidating/refetching inquiries after mutations.",
+      "files": [
+        "frontend/src/components/admin/InquiryActions.tsx",
+        "frontend/src/hooks/useAdminInquiries.ts",
+        "frontend/src/pages/AdminPage.tsx",
+        "frontend/src/utils/inquiryExport.ts"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-27"
       ],
       "confidence": "high"
     }

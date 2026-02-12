@@ -36,22 +36,9 @@ export const idlService = IDL.Service({
   '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
   'deleteInquiry' : IDL.Func([IDL.Nat], [], []),
-  'exportAllInquiries' : IDL.Func([], [IDL.Vec(Inquiry)], ['query']),
   'getAllInquiries' : IDL.Func([], [IDL.Vec(Inquiry)], ['query']),
   'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
-  'getFirstPublicInquiries' : IDL.Func(
-      [IDL.Nat],
-      [IDL.Vec(Inquiry)],
-      ['query'],
-    ),
-  'getFirstPublicInternalInquiries' : IDL.Func(
-      [IDL.Nat],
-      [IDL.Vec(Inquiry)],
-      ['query'],
-    ),
-  'getInquiry' : IDL.Func([IDL.Nat], [Inquiry], ['query']),
-  'getPublicInquiries' : IDL.Func([], [IDL.Vec(Inquiry)], ['query']),
   'getUserProfile' : IDL.Func(
       [IDL.Principal],
       [IDL.Opt(UserProfile)],
@@ -72,19 +59,6 @@ export const idlService = IDL.Service({
       [IDL.Nat],
       [],
     ),
-  'submitInternalInquiry' : IDL.Func(
-      [
-        InquiryType,
-        IDL.Text,
-        IDL.Text,
-        IDL.Opt(IDL.Text),
-        IDL.Text,
-        IDL.Opt(IDL.Text),
-      ],
-      [IDL.Nat],
-      [],
-    ),
-  'updateInquiry' : IDL.Func([IDL.Nat, Inquiry], [], []),
 });
 
 export const idlInitArgs = [];
@@ -118,22 +92,9 @@ export const idlFactory = ({ IDL }) => {
     '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
     'deleteInquiry' : IDL.Func([IDL.Nat], [], []),
-    'exportAllInquiries' : IDL.Func([], [IDL.Vec(Inquiry)], ['query']),
     'getAllInquiries' : IDL.Func([], [IDL.Vec(Inquiry)], ['query']),
     'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
     'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
-    'getFirstPublicInquiries' : IDL.Func(
-        [IDL.Nat],
-        [IDL.Vec(Inquiry)],
-        ['query'],
-      ),
-    'getFirstPublicInternalInquiries' : IDL.Func(
-        [IDL.Nat],
-        [IDL.Vec(Inquiry)],
-        ['query'],
-      ),
-    'getInquiry' : IDL.Func([IDL.Nat], [Inquiry], ['query']),
-    'getPublicInquiries' : IDL.Func([], [IDL.Vec(Inquiry)], ['query']),
     'getUserProfile' : IDL.Func(
         [IDL.Principal],
         [IDL.Opt(UserProfile)],
@@ -154,19 +115,6 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Nat],
         [],
       ),
-    'submitInternalInquiry' : IDL.Func(
-        [
-          InquiryType,
-          IDL.Text,
-          IDL.Text,
-          IDL.Opt(IDL.Text),
-          IDL.Text,
-          IDL.Opt(IDL.Text),
-        ],
-        [IDL.Nat],
-        [],
-      ),
-    'updateInquiry' : IDL.Func([IDL.Nat, Inquiry], [], []),
   });
 };
 

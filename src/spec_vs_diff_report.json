@@ -1,54 +1,50 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-12T05:35:53.246Z",
-  "summary": "Diff primarily adds SPA fallback/static files for routing (404.html and admin/index.html) and adjusts frontend routing logic for /admin (including trailing slash). It also includes substantial backend/main.mo changes around inquiries, access control checks, and user profile management that are not clearly tied to the deployment/publish error fix from REQ-13.",
+  "generatedAt": "2026-02-12T19:45:12.985Z",
+  "summary": "Frontend adds an Official Login dialog with sessionStorage-based session state and updates routing to guard /admin, restores an admin dashboard UI with React Query-powered inquiry list/mutations and export utilities, and removes the static /admin redirect. Backend adds inquiry management APIs but enforces authorization via AccessControl admin principal checks rather than validating the Official Login credentials, so the Official Login flow is not actually compatible with backend authorization per the BuildRequest.",
   "missing_requirements": [
     {
-      "id": "REQ-13",
-      "requirement": "A production (live) publish completes successfully without deployment errors; both backend canister and frontend assets build successfully as part of the live publish pipeline.",
-      "reason": "The diff shows code/content changes but does not include build/pipeline configuration changes or any evidence (e.g., build scripts, deployment config, CI logs) demonstrating that the production publish/deployment error is resolved and that both backend and frontend build successfully in the live publish pipeline.",
+      "id": "REQ-26",
+      "requirement": "Backend methods enforce an authorization mechanism compatible with the Official Login flow (e.g., verifying the provided User ID and Password match exactly) before returning/modifying inquiry data.",
+      "reason": "The backend inquiry management APIs (getAllInquiries, setInquiryReadStatus, deleteInquiry) authorize solely via AccessControl.isAdmin(caller), with no credential parameters or validation against the required User ID/Password. The Official Login is implemented only in the frontend via sessionStorage and is not used by the backend for access control.",
       "evidence": [
-        "frontend/public/404.html",
-        "frontend/public/admin/index.html",
-        "frontend/src/App.tsx",
-        "backend/main.mo"
-      ]
-    },
-    {
-      "id": "REQ-13",
-      "requirement": "After live publish, the main site loads successfully and the hidden /admin route still renders the admin page.",
-      "reason": "The diff improves routing behavior for /admin and adds fallback pages, but it does not provide deploy/runtime evidence that production routing actually serves these assets correctly after publish (e.g., asset canister routing behavior/config).",
-      "evidence": [
-        "frontend/src/App.tsx",
-        "frontend/public/404.html",
-        "frontend/public/admin/index.html"
+        "backend/main.mo",
+        "frontend/src/hooks/useOfficialLogin.ts",
+        "frontend/src/hooks/useAdminInquiries.ts"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Added/expanded backend user profile management (get/save caller profile, profile access checks).",
-      "reason": "REQ-13 is scoped to investigating/fixing a production deployment error when publishing Draft Version 2 live; it does not request new backend user profile functionality.",
+      "description": "Backend authorization framework/mixin (AccessControl + MixinAuthorization) and principal-based admin gating for inquiry APIs.",
+      "reason": "BuildRequest asked for credential-based authorization compatible with the Official Login flow, not principal/role-based admin checks via an authorization mixin.",
       "evidence": [
         "backend/main.mo"
       ]
     },
     {
-      "description": "Added/expanded backend inquiry functionality (public inquiry submission, internal admin-only inquiries, admin-only retrieval including getAllInquiries/getPublicInquiries, additional inquiry fields such as internal/read).",
-      "reason": "REQ-13 does not ask for new inquiry features; these appear to be product functionality additions beyond the deployment-error fix.",
+      "description": "Internet Identity-related component/config updates mentioned in file summaries (e.g., AdminLoginPrompt, useInternetIdentity changes).",
+      "reason": "Non-goals explicitly said not to integrate third-party authentication providers and the request centered on a custom local username/password flow; these II-related changes are not requested in REQ-21..REQ-27.",
       "evidence": [
-        "backend/main.mo"
+        "frontend-file-summaries.txt"
       ]
     }
   ],
-  "confidence": 0.62,
+  "confidence": 0.72,
   "changed_files": [
     "backend/main.mo",
     "frontend-file-summaries.txt",
-    "frontend/public/404.html",
     "frontend/public/admin/index.html",
     "frontend/src/App.tsx",
+    "frontend/src/components/admin/InquiryActions.tsx",
+    "frontend/src/components/admin/InquiryList.tsx",
+    "frontend/src/components/admin/OfficialLoginDialog.tsx",
+    "frontend/src/components/sections/HeroSection.tsx",
+    "frontend/src/hooks/useAdminInquiries.ts",
+    "frontend/src/hooks/useOfficialLogin.ts",
+    "frontend/src/pages/AdminPage.tsx",
+    "frontend/src/utils/inquiryExport.ts",
     "project_state.json"
   ]
 }

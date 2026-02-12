@@ -117,22 +117,15 @@ export enum UserRole {
 export interface backendInterface {
     _initializeAccessControlWithSecret(userSecret: string): Promise<void>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
-    deleteInquiry(id: bigint): Promise<void>;
-    exportAllInquiries(): Promise<Array<Inquiry>>;
+    deleteInquiry(inquiryId: bigint): Promise<void>;
     getAllInquiries(): Promise<Array<Inquiry>>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
-    getFirstPublicInquiries(amount: bigint): Promise<Array<Inquiry>>;
-    getFirstPublicInternalInquiries(amount: bigint): Promise<Array<Inquiry>>;
-    getInquiry(id: bigint): Promise<Inquiry>;
-    getPublicInquiries(): Promise<Array<Inquiry>>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     isCallerAdmin(): Promise<boolean>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
-    setInquiryReadStatus(id: bigint, read: boolean): Promise<void>;
+    setInquiryReadStatus(inquiryId: bigint, read: boolean): Promise<void>;
     submitInquiry(inquiryType: InquiryType, name: string, phoneNumber: string, email: string | null, message: string, serviceCategory: string | null): Promise<bigint>;
-    submitInternalInquiry(inquiryType: InquiryType, name: string, phoneNumber: string, email: string | null, message: string, serviceCategory: string | null): Promise<bigint>;
-    updateInquiry(id: bigint, updatedInquiry: Inquiry): Promise<void>;
 }
 import type { Inquiry as _Inquiry, InquiryType as _InquiryType, Time as _Time, UserProfile as _UserProfile, UserRole as _UserRole } from "./declarations/backend.did.d.ts";
 export class Backend implements backendInterface {
@@ -179,20 +172,6 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async exportAllInquiries(): Promise<Array<Inquiry>> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.exportAllInquiries();
-                return from_candid_vec_n3(this._uploadFile, this._downloadFile, result);
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.exportAllInquiries();
-            return from_candid_vec_n3(this._uploadFile, this._downloadFile, result);
-        }
-    }
     async getAllInquiries(): Promise<Array<Inquiry>> {
         if (this.processError) {
             try {
@@ -233,62 +212,6 @@ export class Backend implements backendInterface {
         } else {
             const result = await this.actor.getCallerUserRole();
             return from_candid_UserRole_n10(this._uploadFile, this._downloadFile, result);
-        }
-    }
-    async getFirstPublicInquiries(arg0: bigint): Promise<Array<Inquiry>> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.getFirstPublicInquiries(arg0);
-                return from_candid_vec_n3(this._uploadFile, this._downloadFile, result);
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.getFirstPublicInquiries(arg0);
-            return from_candid_vec_n3(this._uploadFile, this._downloadFile, result);
-        }
-    }
-    async getFirstPublicInternalInquiries(arg0: bigint): Promise<Array<Inquiry>> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.getFirstPublicInternalInquiries(arg0);
-                return from_candid_vec_n3(this._uploadFile, this._downloadFile, result);
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.getFirstPublicInternalInquiries(arg0);
-            return from_candid_vec_n3(this._uploadFile, this._downloadFile, result);
-        }
-    }
-    async getInquiry(arg0: bigint): Promise<Inquiry> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.getInquiry(arg0);
-                return from_candid_Inquiry_n4(this._uploadFile, this._downloadFile, result);
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.getInquiry(arg0);
-            return from_candid_Inquiry_n4(this._uploadFile, this._downloadFile, result);
-        }
-    }
-    async getPublicInquiries(): Promise<Array<Inquiry>> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.getPublicInquiries();
-                return from_candid_vec_n3(this._uploadFile, this._downloadFile, result);
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.getPublicInquiries();
-            return from_candid_vec_n3(this._uploadFile, this._downloadFile, result);
         }
     }
     async getUserProfile(arg0: Principal): Promise<UserProfile | null> {
@@ -358,34 +281,6 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.submitInquiry(to_candid_InquiryType_n12(this._uploadFile, this._downloadFile, arg0), arg1, arg2, to_candid_opt_n14(this._uploadFile, this._downloadFile, arg3), arg4, to_candid_opt_n14(this._uploadFile, this._downloadFile, arg5));
-            return result;
-        }
-    }
-    async submitInternalInquiry(arg0: InquiryType, arg1: string, arg2: string, arg3: string | null, arg4: string, arg5: string | null): Promise<bigint> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.submitInternalInquiry(to_candid_InquiryType_n12(this._uploadFile, this._downloadFile, arg0), arg1, arg2, to_candid_opt_n14(this._uploadFile, this._downloadFile, arg3), arg4, to_candid_opt_n14(this._uploadFile, this._downloadFile, arg5));
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.submitInternalInquiry(to_candid_InquiryType_n12(this._uploadFile, this._downloadFile, arg0), arg1, arg2, to_candid_opt_n14(this._uploadFile, this._downloadFile, arg3), arg4, to_candid_opt_n14(this._uploadFile, this._downloadFile, arg5));
-            return result;
-        }
-    }
-    async updateInquiry(arg0: bigint, arg1: Inquiry): Promise<void> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.updateInquiry(arg0, to_candid_Inquiry_n15(this._uploadFile, this._downloadFile, arg1));
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.updateInquiry(arg0, to_candid_Inquiry_n15(this._uploadFile, this._downloadFile, arg1));
             return result;
         }
     }
@@ -463,50 +358,11 @@ function from_candid_vec_n3(_uploadFile: (file: ExternalBlob) => Promise<Uint8Ar
 function to_candid_InquiryType_n12(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: InquiryType): _InquiryType {
     return to_candid_variant_n13(_uploadFile, _downloadFile, value);
 }
-function to_candid_Inquiry_n15(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Inquiry): _Inquiry {
-    return to_candid_record_n16(_uploadFile, _downloadFile, value);
-}
 function to_candid_UserRole_n1(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserRole): _UserRole {
     return to_candid_variant_n2(_uploadFile, _downloadFile, value);
 }
 function to_candid_opt_n14(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: string | null): [] | [string] {
     return value === null ? candid_none() : candid_some(value);
-}
-function to_candid_record_n16(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
-    id: bigint;
-    serviceCategory?: string;
-    internal: boolean;
-    inquiryType: InquiryType;
-    name: string;
-    read: boolean;
-    email?: string;
-    message: string;
-    timestamp: Time;
-    phoneNumber: string;
-}): {
-    id: bigint;
-    serviceCategory: [] | [string];
-    internal: boolean;
-    inquiryType: _InquiryType;
-    name: string;
-    read: boolean;
-    email: [] | [string];
-    message: string;
-    timestamp: _Time;
-    phoneNumber: string;
-} {
-    return {
-        id: value.id,
-        serviceCategory: value.serviceCategory ? candid_some(value.serviceCategory) : candid_none(),
-        internal: value.internal,
-        inquiryType: to_candid_InquiryType_n12(_uploadFile, _downloadFile, value.inquiryType),
-        name: value.name,
-        read: value.read,
-        email: value.email ? candid_some(value.email) : candid_none(),
-        message: value.message,
-        timestamp: value.timestamp,
-        phoneNumber: value.phoneNumber
-    };
 }
 function to_candid_variant_n13(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: InquiryType): {
     contact: null;

@@ -34,20 +34,13 @@ export enum UserRole {
 }
 export interface backendInterface {
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
-    deleteInquiry(id: bigint): Promise<void>;
-    exportAllInquiries(): Promise<Array<Inquiry>>;
+    deleteInquiry(inquiryId: bigint): Promise<void>;
     getAllInquiries(): Promise<Array<Inquiry>>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
-    getFirstPublicInquiries(amount: bigint): Promise<Array<Inquiry>>;
-    getFirstPublicInternalInquiries(amount: bigint): Promise<Array<Inquiry>>;
-    getInquiry(id: bigint): Promise<Inquiry>;
-    getPublicInquiries(): Promise<Array<Inquiry>>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     isCallerAdmin(): Promise<boolean>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
-    setInquiryReadStatus(id: bigint, read: boolean): Promise<void>;
+    setInquiryReadStatus(inquiryId: bigint, read: boolean): Promise<void>;
     submitInquiry(inquiryType: InquiryType, name: string, phoneNumber: string, email: string | null, message: string, serviceCategory: string | null): Promise<bigint>;
-    submitInternalInquiry(inquiryType: InquiryType, name: string, phoneNumber: string, email: string | null, message: string, serviceCategory: string | null): Promise<bigint>;
-    updateInquiry(id: bigint, updatedInquiry: Inquiry): Promise<void>;
 }

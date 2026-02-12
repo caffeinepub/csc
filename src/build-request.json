@@ -1,36 +1,138 @@
 {
   "kind": "build_request",
-  "title": "Resolve production deployment error and publish Draft Version 2 live",
-  "priority": "high",
+  "title": "Add Official Login (custom credentials) and restore Admin dashboard access",
+  "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-13",
-      "text": "Investigate and fix the deployment error that occurs when publishing Draft Version 2 to production (live), ensuring the project can be successfully deployed without errors.",
-      "target": "both",
+      "id": "REQ-21",
+      "text": "Add an \"Official Login\" entry point on the homepage (and remove/avoid any other admin entry points) that prompts for a User ID and Password and validates against the exact credentials: User ID \"K107182721\" and Password \"Karauli#34\".",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1",
-          "msg-2"
+          "msg-1"
         ],
         "quotes": [
-          "🙏 Go live encountered an issue: Deployment error",
-          "Please live it"
+          "There should be only one option on the home screen named Official Login whose user id will be K107182721 and password is Karauli#34"
         ]
       },
       "acceptanceCriteria": [
-        "A production (live) publish completes successfully without deployment errors.",
-        "Both backend canister and frontend assets build successfully as part of the live publish pipeline.",
-        "After live publish, the main site loads successfully and the hidden /admin route still renders the admin page."
+        "The public marketing website sections (Home/Services/Why Choose Us/Contact/Form) remain visible and unchanged in structure/content.",
+        "The homepage contains exactly one admin-related entry point labeled \"Official Login\"; no navigation items/anchors link to admin access.",
+        "Clicking \"Official Login\" opens a login UI that requires both User ID and Password.",
+        "Entering the exact credentials succeeds; any other values fail with a clear error message."
+      ]
+    },
+    {
+      "id": "REQ-22",
+      "text": "Implement a session-based official-login state that persists only for the current browser tab/session and is cleared on explicit logout and on tab/window close; when logged out, the user is returned to the normal homepage view.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "After logging out or closing a tab, shouldn't the user always return to the homepage with just the \"Official Login\" button?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "After successful Official Login, the app records an authenticated session in sessionStorage (or equivalent session-only storage).",
+        "Refreshing the page within the same tab keeps the user logged in.",
+        "Closing the tab/window clears the login session; reopening the site requires login again.",
+        "A visible \"Logout\" action exists in the admin area; clicking it clears the session and routes back to the homepage."
+      ]
+    },
+    {
+      "id": "REQ-23",
+      "text": "Re-enable and restore the admin/management dashboard UI at route \"/admin\" to allow the logged-in official user to view inquiry submissions and perform actions: delete, mark as read/unread, and export/download submissions.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "After logging in, i should the see message and manage website",
+          "After logging in, should the old admin dashboard be fully restored, including the View/Delete/Mark as Read/Unread options, and Export options?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Visiting \"/admin\" while not officially logged in does not show any admin data and instead redirects to the homepage (or shows a simple disabled/unauthorized message).",
+        "After Official Login succeeds, the user is redirected to \"/admin\" automatically.",
+        "The admin dashboard displays inquiry submissions with: id, timestamp, inquiry type, name, phone number, optional email, message, optional service category, internal flag, and read/unread state.",
+        "Admin actions are available per inquiry: delete and toggle read/unread.",
+        "An export/download action is available that downloads inquiries in a common format (e.g., CSV or JSON)."
+      ]
+    },
+    {
+      "id": "REQ-24",
+      "text": "Update SPA routing behavior so \"/admin\" is no longer force-redirected to \"/\" when the user is officially logged in, while preserving the redirect/guard for non-logged-in users.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Current logic in frontend/src/App.tsx that unconditionally redirects \"/admin\" to \"/\" is replaced with a guard that allows \"/admin\" only when Official Login session is present.",
+        "\tThe marketing site remains the default view for \"/\" and other routes.",
+        "Both \"/admin\" and \"/admin/\" behave consistently (no admin page rendering when not logged in; admin renders when logged in)."
+      ]
+    },
+    {
+      "id": "REQ-25",
+      "text": "Update the static entrypoint at frontend/public/admin/index.html to no longer immediately redirect to \"/\" so that direct navigation to \"/admin\" can load the SPA and show the admin dashboard for an authenticated official session.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ]
+      },
+      "acceptanceCriteria": [
+        "frontend/public/admin/index.html no longer contains an unconditional JavaScript redirect to \"/\".",
+        "Direct navigation to \"/admin\" in a fresh tab loads the SPA; if not logged in it is guarded/redirected by the app, and if logged in it shows the admin dashboard."
+      ]
+    },
+    {
+      "id": "REQ-26",
+      "text": "Extend the Motoko backend (single actor in backend/main.mo) with access-controlled inquiry management APIs needed by the restored admin dashboard: list inquiries, delete inquiry, and set read/unread, plus an export-friendly retrieval method if needed by the frontend.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Backend exposes a query to list inquiries (including all fields currently stored in Inquiry).",
+        "Backend exposes shared methods to delete an inquiry by id and to set an inquiry's read/unread status.",
+        "Backend methods enforce an authorization mechanism compatible with the Official Login flow (e.g., verifying the provided User ID and Password match exactly) before returning/modifying inquiry data.",
+        "Existing submitInquiry behavior remains unchanged and continues to store inquiries successfully."
+      ]
+    },
+    {
+      "id": "REQ-27",
+      "text": "Implement React Query hooks for the restored admin inquiry operations (list, mark read/unread, delete, export) and ensure the UI stays consistent by invalidating/refetching inquiries after mutations.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Admin dashboard uses React Query for fetching and mutations.",
+        "After delete or read/unread toggle, the inquiries list updates without requiring a full page refresh.",
+        "Export action uses the latest fetched data or fetches fresh data before download."
       ]
     }
   ],
   "constraints": [
-    "Respect the single-actor backend architecture; keep all Motoko logic in backend/main.mo and only add backend/migration.mo changes if an upgrade requires state migration.",
-    "Do not edit any files under frontend/src/components/ui or any other paths listed as immutable in SYSTEM_CONTEXT."
+    "Do not edit any immutable frontend paths listed in SYSTEM_CONTEXT (compose existing UI components instead).",
+    "Keep all Motoko logic in the single actor at backend/main.mo; only add backend/migration.mo if a state upgrade is required.",
+    "Credentials must match exactly: User ID \"K107182721\" and Password \"Karauli#34\".",
+    "Implement the Official Login as a custom local username/password flow; acknowledge it is not equivalent to Internet Identity security and should be treated as lightweight protection."
   ],
   "nonGoals": [
-    "Implement WhatsApp notifications.",
-    "Implement email notifications or integrate with any external email delivery service."
+    "Do not change the public marketing site content/sections beyond adding the single \"Official Login\" entry point.",
+    "Do not integrate third-party authentication providers (only custom local login for this request).",
+    "Do not add external databases or non-Motoko backend services."
   ],
   "imageRequirements": {
     "required": [],

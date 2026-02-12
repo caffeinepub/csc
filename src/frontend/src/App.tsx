@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useOfficialLogin } from './hooks/useOfficialLogin';
 import NavigationBar from './components/NavigationBar';
 import HeroSection from './components/sections/HeroSection';
 import ServicesSection from './components/sections/ServicesSection';
@@ -10,6 +11,7 @@ import AdminPage from './pages/AdminPage';
 
 export default function App() {
   const [currentPath, setCurrentPath] = useState(window.location.pathname);
+  const { isOfficiallyLoggedIn } = useOfficialLogin();
 
   useEffect(() => {
     const handleLocationChange = () => {
@@ -20,15 +22,17 @@ export default function App() {
     return () => window.removeEventListener('popstate', handleLocationChange);
   }, []);
 
-  // Normalize path by removing trailing slash for comparison
   const normalizedPath = currentPath.replace(/\/$/, '');
 
-  // Render admin page for /admin route (with or without trailing slash)
   if (normalizedPath === '/admin') {
-    return <AdminPage />;
+    if (isOfficiallyLoggedIn) {
+      return <AdminPage />;
+    } else {
+      window.history.replaceState(null, '', '/');
+      setCurrentPath('/');
+    }
   }
 
-  // Render main marketing site for all other routes
   return (
     <div className="min-h-screen bg-background">
       <NavigationBar />
