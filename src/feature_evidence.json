@@ -1,0 +1,130 @@
+{
+  "kind": "feature_evidence_report",
+  "features": [
+    {
+      "featureId": "feature-create-a-responsive-informational-website-for-csc-that-presents-the-business-name-tagline-location-operator-name-rahul-chavariya-and-contact-whatsapp-number-91-7426049215-using-the-user-provided-hindi-content-as-the-primary-copy",
+      "featureTitle": "Create a responsive informational website for “वैष्णवी ई-मित्र & CSC केन्द्र” that presents the business name, tagline, location (कोटा (माम), करौली), operator name (Rahul Chavariya), and contact/WhatsApp number (+91-7426049215), using the user-provided Hindi content as the primary copy.",
+      "files": [
+        "frontend/src/App.tsx",
+        "frontend/src/components/sections/ContactSection.tsx",
+        "frontend/src/components/sections/HeroSection.tsx",
+        "frontend/src/components/sections/ServicesSection.tsx",
+        "frontend/src/content/siteContent.ts"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-1"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-a-clear-navigation-structure-single-page-sections-or-multi-page-developer-choice-that-at-minimum-includes-home-intro-services-why-choose-us-contact-address-and-a-form-section",
+      "featureTitle": "Add a clear navigation structure (single-page sections or multi-page, developer choice) that at minimum includes: Home/Intro, Services, Why Choose Us, Contact/Address, and a Form section.",
+      "files": [
+        "frontend/src/App.tsx",
+        "frontend/src/components/NavigationBar.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-2"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-implement-a-website-form-for-customer-inquiries-that-supports-both-contact-and-service-request-use-cases-by-including-an-inquiry-type-field-e-g-dropdown-along-with-name-phone-number-optional-email-message-details-and-optional-service-category-selection",
+      "featureTitle": "Implement a website form for customer inquiries that supports both “Contact” and “Service request” use cases by including an Inquiry Type field (e.g., dropdown) along with name, phone number, optional email, message/details, and optional service/category selection.",
+      "files": [
+        "frontend/src/App.tsx",
+        "frontend/src/components/InquiryForm.tsx",
+        "frontend/src/components/sections/FormSection.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-3"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-apply-a-cohesive-visual-theme-colors-typography-spacing-components-suitable-for-a-local-digital-services-center-avoid-blue-purple-as-primary-brand-colors-use-tailwind-existing-ui-components-without-editing-any-immutable-component-source-files",
+      "featureTitle": "Apply a cohesive visual theme (colors, typography, spacing, components) suitable for a local digital services center. Avoid blue/purple as primary brand colors. Use Tailwind + existing UI components without editing any immutable component source files.",
+      "files": [
+        "frontend/src/App.tsx",
+        "frontend/src/index.css"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-5"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-a-simple-footer-with-business-name-location-operator-name-and-contact-number-plus-a-brief-disclaimer-line-e-g-service-availability-may-vary-by-government-portal-status",
+      "featureTitle": "Add a simple footer with business name, location, operator name, and contact number, plus a brief disclaimer line (e.g., ‘Service availability may vary by government portal status.’).",
+      "files": [
+        "frontend/src/App.tsx",
+        "frontend/src/components/Footer.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-6"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-render-newly-generated-static-images-from-frontend-public-assets-generated-in-the-site-layout-hero-and-logo-mark-without-routing-images-through-the-backend",
+      "featureTitle": "Render newly generated static images (from frontend/public/assets/generated) in the site layout (hero and logo/mark) without routing images through the backend.",
+      "files": [
+        "frontend/src/components/BrandMark.tsx",
+        "frontend/src/components/NavigationBar.tsx",
+        "frontend/src/components/sections/HeroSection.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-7"
+      ],
+      "confidence": "high"
+    }
+  ]
+}

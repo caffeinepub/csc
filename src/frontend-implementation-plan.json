@@ -1,0 +1,161 @@
+{
+  "kind": "implementation_plan",
+  "version": "1.0",
+  "title": "Vaishnavi E-Mitra & CSC Kendra informational site with inquiry form (frontend)",
+  "requirements": [
+    {
+      "id": "REQ-1",
+      "summary": "Build a responsive single-page informational homepage using the provided Hindi content, including business identity details and clickable phone/WhatsApp actions.",
+      "acceptanceCriteria": [
+        "Homepage renders correctly on mobile and desktop and includes: business name, tagline, location, operator name, and phone/WhatsApp contact info.",
+        "All listed service categories from the provided content are displayed in a readable, scannable layout (e.g., grouped sections/cards).",
+        "Phone number is clickable (tel:) and WhatsApp action is available via a link (wa.me) using the provided number."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/content/siteContent.ts",
+          "operation": "create",
+          "description": "Add a single source of truth for the provided Hindi primary copy: business name, tagline, location (कोटा (माम), करौली), operator name (Rahul Chavariya), phone/WhatsApp number (+91-7426049215), and the full list of service categories grouped for display."
+        },
+        {
+          "path": "frontend/src/components/sections/ServicesSection.tsx",
+          "operation": "create",
+          "description": "Create a Services section that renders all service categories from frontend/src/content/siteContent.ts in a scannable grouped layout using shadcn-ui card/list primitives. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/sections/ContactSection.tsx",
+          "operation": "create",
+          "description": "Create a Contact/Address section that displays the provided address/location text and operator/contact details, including a clickable tel: link and a wa.me link for WhatsApp. Use shadcn-ui button/link styling where applicable. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/sections/HeroSection.tsx",
+          "operation": "create",
+          "description": "Create a Hero/Intro section that presents the business name and tagline prominently and includes primary CTAs for Call and WhatsApp. Use shadcn-ui button components for consistent styling. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "create",
+          "description": "Implement the single-page layout composing Hero, Services, Why Choose Us, Form, and Contact sections, populated from frontend/src/content/siteContent.ts. Ensure responsive layout and readable typography on mobile/desktop."
+        }
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "summary": "Add clear navigation to Home/Intro, Services, Why Choose Us, Contact/Address, and Form sections with correct scrolling.",
+      "acceptanceCriteria": [
+        "Navigation links scroll or route to the correct sections/pages.",
+        "Contact/Address section includes the provided address text and operator/contact details."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/NavigationBar.tsx",
+          "operation": "create",
+          "description": "Create a sticky/top navigation bar with links to required sections (Home/Intro, Services, Why Choose Us, Form, Contact/Address) using anchor links and accessible focus styles. Use shadcn-ui button/navigation primitives as available. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Wire NavigationBar into the layout and ensure each required section has a stable anchor id for navigation (single-page sections)."
+        }
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "summary": "Implement an inquiry form supporting Contact and Service Request types with validation, success state, reset, and submission to the Motoko backend.",
+      "acceptanceCriteria": [
+        "Form includes: Inquiry Type, Name, Phone, Message/Details (email optional).",
+        "Client-side validation prevents submission when required fields are missing and shows clear inline error messages.",
+        "On successful submission, user sees a success state and the form resets.",
+        "Submissions are sent to the Motoko backend and persisted in stable storage."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useSubmitInquiry.ts",
+          "operation": "create",
+          "description": "Add a React hook (React Query mutation) that uses useActor() to call the backend capability submitInquiry(...) for public submissions; return loading/success/error state for the UI."
+        },
+        {
+          "path": "frontend/src/components/InquiryForm.tsx",
+          "operation": "create",
+          "description": "Build the inquiry form UI with fields: Inquiry Type (dropdown), Name, Phone, optional Email, Message/Details, optional Service/Category. Implement client-side validation with clear inline errors and a post-submit success state that resets the form. Use shadcn-ui form controls (Input, Textarea, Select, Button, Alert) for consistent UI. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/sections/FormSection.tsx",
+          "operation": "create",
+          "description": "Create a Form section wrapper that provides heading/context text and renders the InquiryForm component; include anchor id for navigation."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Wire FormSection into the single-page layout and ensure navigation can jump to it."
+        }
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "summary": "Apply a cohesive warm-neutral theme (no blue/purple primary) using Tailwind and existing UI components without editing immutable component sources.",
+      "acceptanceCriteria": [
+        "The UI has a consistent theme across sections (buttons, headings, cards, spacing).",
+        "Primary palette is not blue/purple (e.g., use warm neutrals with saffron/green accents).",
+        "No changes are made to files under the immutable frontend paths; components are composed/used as-is."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/index.css",
+          "operation": "create",
+          "description": "Define global Tailwind layers and CSS variables for the shadcn-ui theme using warm neutrals with saffron/green accents; ensure primary/accent tokens are not blue/purple and typography/spacing are consistent across the page."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Ensure consistent section spacing, typography scale, and component variants across the site using Tailwind utility classes and shadcn-ui components (no edits to immutable component source files). Verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-6",
+      "summary": "Add a footer with business details and a brief disclaimer, visible at the bottom of the layout.",
+      "acceptanceCriteria": [
+        "Footer appears on all pages/at the bottom of the single-page layout.",
+        "Footer contains the specified business details and a short disclaimer sentence."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/Footer.tsx",
+          "operation": "create",
+          "description": "Create a footer that displays: business name, location, operator name, contact number, and a short disclaimer line (e.g., ‘Service availability may vary by government portal status.’). Use content from frontend/src/content/siteContent.ts."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Wire Footer into the app so it appears at the bottom of the single-page layout."
+        }
+      ]
+    },
+    {
+      "id": "REQ-7",
+      "summary": "Render generated static hero and logo images from frontend/public/assets/generated directly in the UI without backend routing.",
+      "acceptanceCriteria": [
+        "Generated hero image and logo are included as static assets under frontend/public/assets/generated and are referenced directly by the frontend.",
+        "Images display crisply on mobile and desktop and do not break layout."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/BrandMark.tsx",
+          "operation": "create",
+          "description": "Add a small brand mark/logo component that references the generated image at frontend/public/assets/generated/vaishnavi-logo.dim_512x512.png and renders it crisply with appropriate sizing and alt text."
+        },
+        {
+          "path": "frontend/src/components/sections/HeroSection.tsx",
+          "operation": "modify",
+          "description": "Reference and render the generated hero banner image at frontend/public/assets/generated/vaishnavi-hero.dim_1600x900.png within the hero layout (responsive, non-breaking), and include the BrandMark/logo in the hero or header as appropriate."
+        },
+        {
+          "path": "frontend/src/components/NavigationBar.tsx",
+          "operation": "modify",
+          "description": "Include the BrandMark/logo in the navigation/header area to reinforce branding while keeping navigation accessible. Verify the component's usage instructions before implementing."
+        }
+      ]
+    }
+  ]
+}

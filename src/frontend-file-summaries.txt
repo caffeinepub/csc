@@ -1,0 +1,16 @@
+{
+  "frontend/src/App.tsx": "Main application component that composes all sections (Hero, Services, Why Choose Us, Form, Contact) with navigation and footer in a single-page layout.",
+  "frontend/src/content/siteContent.ts": "Centralized content store containing all Hindi business copy, service categories, contact details, and site text for the Vaishnavi E-Mitra & CSC centre.",
+  "frontend/src/hooks/useQueries.ts": "React Query mutation hook for submitting public inquiries to the backend using the actor interface.",
+  "frontend/src/components/BrandMark.tsx": "Reusable logo component that displays the generated Vaishnavi logo image with configurable sizes.",
+  "frontend/src/components/NavigationBar.tsx": "Sticky navigation bar with smooth scroll-to-section functionality, mobile menu, and brand logo integration.",
+  "frontend/src/components/sections/HeroSection.tsx": "Hero section featuring business name, tagline, hero image background, and primary CTAs (Call and WhatsApp).",
+  "frontend/src/components/sections/ServicesSection.tsx": "Grid layout displaying all service categories from siteContent in organized cards with icons and item lists.",
+  "frontend/src/components/sections/WhyChooseUsSection.tsx": "Section showcasing five key reasons to choose the business using icon cards in a responsive grid.",
+  "frontend/src/components/InquiryForm.tsx": "Controlled form component with validation for inquiry submission (contact/service request types) including success state and error handling.",
+  "frontend/src/components/sections/FormSection.tsx": "Wrapper section for the inquiry form with heading and context, providing the form anchor for navigation.",
+  "frontend/src/components/sections/ContactSection.tsx": "Contact information section displaying address, operator details, and action buttons for phone/WhatsApp.",
+  "frontend/src/components/Footer.tsx": "Footer component with business details, disclaimer, copyright, and Caffeine.ai attribution with UTM tracking.",
+  "frontend/src/index.css": "Global styles with warm neutral OKLCH color system featuring saffron primary and green accent colors for both light and dark modes.",
+  "frontend/tailwind.config.js": "Tailwind configuration extending the theme with custom color tokens, border radius, shadows, and animations."
+}

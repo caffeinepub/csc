@@ -1,0 +1,90 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectStateVersion": 3,
+  "summary": "Website for “वैष्णवी ई-मित्र & CSC केन्द्र” (E-Mitra & CSC centre) in कोटा (माम), करौली, showcasing services, address, and contact details (Operator: Rahul Chavariya).",
+  "architectural_notes": [
+    "Site content/language: Hindi promotional content for Vaishnavi E-Mitra & CSC centre.",
+    "Key business details to display: Operator Rahul Chavariya; phone/WhatsApp +91-7426049215; location/address in Kota (Mam), Karauli."
+  ],
+  "known_issues": [
+    "Form requirement is not fully specified (contact form vs service-request form vs both)."
+  ],
+  "isFixRequest": false,
+  "imageRequirements": "## Required Images\n- Minimal vector-style logo/mark featuring a small storefront + document motif, warm neutral palette with saffron/green accents (vaishnavi-logo.dim_512x512.png)\n- Wide hero banner illustration of a local digital services counter with subtle government-document icons, clean modern flat style (vaishnavi-hero.dim_1600x900.png)",
+  "existing_features": [
+    {
+      "id": "feature-create-a-responsive-informational-website-for-csc-that-presents-the-business-name-tagline-location-operator-name-rahul-chavariya-and-contact-whatsapp-number-91-7426049215-using-the-user-provided-hindi-content-as-the-primary-copy",
+      "title": "Create a responsive informational website for “वैष्णवी ई-मित्र & CSC केन्द्र” that presents the business name, tagline, location (कोटा (माम), करौली), operator name (Rahul Chavariya), and contact/WhatsApp number (+91-7426049215), using the user-provided Hindi content as the primary copy.",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-clear-navigation-structure-single-page-sections-or-multi-page-developer-choice-that-at-minimum-includes-home-intro-services-why-choose-us-contact-address-and-a-form-section",
+      "title": "Add a clear navigation structure (single-page sections or multi-page, developer choice) that at minimum includes: Home/Intro, Services, Why Choose Us, Contact/Address, and a Form section.",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-a-website-form-for-customer-inquiries-that-supports-both-contact-and-service-request-use-cases-by-including-an-inquiry-type-field-e-g-dropdown-along-with-name-phone-number-optional-email-message-details-and-optional-service-category-selection",
+      "title": "Implement a website form for customer inquiries that supports both “Contact” and “Service request” use cases by including an Inquiry Type field (e.g., dropdown) along with name, phone number, optional email, message/details, and optional service/category selection.",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-apply-a-cohesive-visual-theme-colors-typography-spacing-components-suitable-for-a-local-digital-services-center-avoid-blue-purple-as-primary-brand-colors-use-tailwind-existing-ui-components-without-editing-any-immutable-component-source-files",
+      "title": "Apply a cohesive visual theme (colors, typography, spacing, components) suitable for a local digital services center. Avoid blue/purple as primary brand colors. Use Tailwind + existing UI components without editing any immutable component source files.",
+      "reqIds": [
+        "REQ-5"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-simple-footer-with-business-name-location-operator-name-and-contact-number-plus-a-brief-disclaimer-line-e-g-service-availability-may-vary-by-government-portal-status",
+      "title": "Add a simple footer with business name, location, operator name, and contact number, plus a brief disclaimer line (e.g., ‘Service availability may vary by government portal status.’).",
+      "reqIds": [
+        "REQ-6"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-render-newly-generated-static-images-from-frontend-public-assets-generated-in-the-site-layout-hero-and-logo-mark-without-routing-images-through-the-backend",
+      "title": "Render newly generated static images (from frontend/public/assets/generated) in the site layout (hero and logo/mark) without routing images through the backend.",
+      "reqIds": [
+        "REQ-7"
+      ],
+      "version": 1
+    }
+  ],
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Create an informational business website for “वैष्णवी ई-मित्र & CSC केन्द्र” including services list, address (कोटा (माम), करौली), and operator/contact details (Rahul Chavariya, +91-7426049215).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Add a website form (e.g., contact form and/or service request form).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-6",
+      "summary": "Create backend endpoints in the single Motoko main actor to accept and store form submissions (timestamped) and to retrieve submissions for basic internal review (no public display unless explicitly enabled).",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "status": "pending"
+    }
+  ],
+  "gameProjectType": "none",
+  "projectName": "वैष्णवी ई-मित्र & CSC केन्द्र",
+  "clarification_mode": "instant",
+  "clarification_rounds": 0
+}
