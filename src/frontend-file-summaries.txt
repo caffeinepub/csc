@@ -1,7 +1,7 @@
 {
-  "frontend/src/App.tsx": "Main application component that composes all sections (Hero, Services, Why Choose Us, Form, Contact) with navigation and footer in a single-page layout.",
+  "frontend/src/App.tsx": "Main application component that routes between the marketing site and admin page, now normalizing paths to handle both /admin and /admin/ correctly.",
   "frontend/src/content/siteContent.ts": "Centralized content store containing all Hindi business copy, service categories, contact details, and site text for the Vaishnavi E-Mitra & CSC centre.",
-  "frontend/src/hooks/useQueries.ts": "React Query mutation hook for submitting public inquiries to the backend using the actor interface.",
+  "frontend/src/hooks/useQueries.ts": "React Query mutation hook for public inquiry submission that invalidates the admin inquiries cache on success.",
   "frontend/src/components/BrandMark.tsx": "Reusable logo component that displays the generated Vaishnavi logo image with configurable sizes.",
   "frontend/src/components/NavigationBar.tsx": "Sticky navigation bar with smooth scroll-to-section functionality, mobile menu, and brand logo integration.",
   "frontend/src/components/sections/HeroSection.tsx": "Hero section featuring business name, tagline, hero image background, and primary CTAs (Call and WhatsApp).",
@@ -12,5 +12,16 @@
   "frontend/src/components/sections/ContactSection.tsx": "Contact information section displaying address, operator details, and action buttons for phone/WhatsApp.",
   "frontend/src/components/Footer.tsx": "Footer component with business details, disclaimer, copyright, and Caffeine.ai attribution with UTM tracking.",
   "frontend/src/index.css": "Global styles with warm neutral OKLCH color system featuring saffron primary and green accent colors for both light and dark modes.",
-  "frontend/tailwind.config.js": "Tailwind configuration extending the theme with custom color tokens, border radius, shadows, and animations."
+  "frontend/tailwind.config.js": "Tailwind configuration extending the theme with custom color tokens, border radius, shadows, and animations.",
+  "frontend/src/pages/AdminPage.tsx": "Admin dashboard page that enforces Internet Identity authentication and backend admin authorization checks before displaying the inquiry management interface with proper loading, unauthorized, and error states.",
+  "frontend/src/components/admin/AdminLoginPrompt.tsx": "Login/logout component for the admin page that handles Internet Identity authentication and clears React Query cache on logout.",
+  "frontend/src/components/admin/InquiryList.tsx": "Displays all inquiries in a filterable list (all/unread/read) with cards showing inquiry details, timestamps, and inline actions for each inquiry.",
+  "frontend/src/components/admin/InquiryActions.tsx": "Provides dropdown menus for individual inquiry actions (mark read/unread, delete with confirmation) and bulk export actions (JSON/CSV) with loading states and toast notifications.",
+  "frontend/src/utils/inquiryExport.ts": "Client-side utility functions to export inquiry data as downloadable JSON or CSV files with proper escaping and timestamped filenames.",
+  "frontend/src/hooks/useAdminInquiries.ts": "React Query hooks for admin operations including user profile fetch, admin authorization check, inquiry list retrieval, delete mutation, and read status mutation with proper cache invalidation.",
+  "frontend/src/main.tsx": "Application entry point that sets up React Query, theme provider, and toast notifications (Sonner) for the entire app.",
+  "frontend/src/hooks/useInternetIdentity.ts": "Internet Identity authentication provider that loads the identity provider URL from config at runtime instead of using process.env, ensuring production build compatibility.",
+  "frontend/src/hooks/useActor.ts": "Backend actor initialization hook that properly uses the authorization component's assignCallerUserRole method for admin access control bootstrap instead of calling a non-existent method.",
+  "frontend/public/admin/index.html": "Static fallback HTML for direct /admin navigation that redirects to the root to enable SPA routing on static hosting.",
+  "frontend/public/404.html": "SPA fallback page that preserves the requested path and redirects to root, allowing client-side routing to handle deep links in production."
 }

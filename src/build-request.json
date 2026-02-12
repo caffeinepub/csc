@@ -1,156 +1,39 @@
 {
   "kind": "build_request",
-  "title": "Informational website for Vaishnavi E-Mitra & CSC Kendra with inquiry form",
-  "priority": "normal",
+  "title": "Resolve production deployment error and publish Draft Version 2 live",
+  "priority": "high",
   "requirements": [
     {
-      "id": "REQ-1",
-      "text": "Create a responsive informational website for “वैष्णवी ई-मित्र & CSC केन्द्र” that presents the business name, tagline, location (कोटा (माम), करौली), operator name (Rahul Chavariya), and contact/WhatsApp number (+91-7426049215), using the user-provided Hindi content as the primary copy.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "वेबसाइट बना द",
-          "✨🏪 वैष्णवी ई-मित्र & CSC केन्द्र 🏪✨ ... 👨‍💼 संचालक: राहुल छावरिया 📞 संपर्क/WhatsApp: +91-7426049215"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Homepage renders correctly on mobile and desktop and includes: business name, tagline, location, operator name, and phone/WhatsApp contact info.",
-        "All listed service categories from the provided content are displayed in a readable, scannable layout (e.g., grouped sections/cards).",
-        "Phone number is clickable (tel:) and WhatsApp action is available via a link (wa.me) using the provided number."
-      ]
-    },
-    {
-      "id": "REQ-2",
-      "text": "Add a clear navigation structure (single-page sections or multi-page, developer choice) that at minimum includes: Home/Intro, Services, Why Choose Us, Contact/Address, and a Form section.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "Website",
-          "वेबसाइट बना द"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Navigation links scroll or route to the correct sections/pages.",
-        "Contact/Address section includes the provided address text and operator/contact details."
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "text": "Implement a website form for customer inquiries that supports both “Contact” and “Service request” use cases by including an Inquiry Type field (e.g., dropdown) along with name, phone number, optional email, message/details, and optional service/category selection.",
+      "id": "REQ-13",
+      "text": "Investigate and fix the deployment error that occurs when publishing Draft Version 2 to production (live), ensuring the project can be successfully deployed without errors.",
       "target": "both",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-1",
+          "msg-2"
         ],
         "quotes": [
-          "वेबसाइट में कोई फ़ॉर्म चाहिए (जैसे सेवा‑रिक्वेस्ट फॉर्म, संपर्क फॉर्म)"
+          "🙏 Go live encountered an issue: Deployment error",
+          "Please live it"
         ]
       },
       "acceptanceCriteria": [
-        "Form includes: Inquiry Type, Name, Phone, Message/Details (email optional).",
-        "Client-side validation prevents submission when required fields are missing and shows clear inline error messages.",
-        "On successful submission, user sees a success state and the form resets.",
-        "Submissions are sent to the Motoko backend and persisted in stable storage."
-      ]
-    },
-    {
-      "id": "REQ-4",
-      "text": "Create backend endpoints in the single Motoko main actor to accept and store form submissions (timestamped) and to retrieve submissions for basic internal review (no public display unless explicitly enabled).",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "वेबसाइट में कोई फ़ॉर्म चाहिए (जैसे सेवा‑रिक्वेस्ट फॉर्म, संपर्क फॉर्म)"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Backend exposes an update method to create a submission and returns an ID or success result.",
-        "Backend stores submissions in stable state so data persists across canister upgrades.",
-        "Backend exposes a query method to list submissions (may be restricted to authenticated/admin users if Internet Identity is already available in the template; otherwise leave it unexposed in UI and document as a canister method)."
-      ]
-    },
-    {
-      "id": "REQ-5",
-      "text": "Apply a cohesive visual theme (colors, typography, spacing, components) suitable for a local digital services center. Avoid blue/purple as primary brand colors. Use Tailwind + existing UI components without editing any immutable component source files.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "Website",
-          "वेबसाइट बना द"
-        ]
-      },
-      "acceptanceCriteria": [
-        "The UI has a consistent theme across sections (buttons, headings, cards, spacing).",
-        "Primary palette is not blue/purple (e.g., use warm neutrals with saffron/green accents).",
-        "No changes are made to files under the immutable frontend paths; components are composed/used as-is."
-      ]
-    },
-    {
-      "id": "REQ-6",
-      "text": "Add a simple footer with business name, location, operator name, and contact number, plus a brief disclaimer line (e.g., ‘Service availability may vary by government portal status.’).",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "📍 कोटा (माम), करौली",
-          "👨‍💼 संचालक: राहुल छावरिया",
-          "📞 संपर्क/WhatsApp: +91-7426049215"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Footer appears on all pages/at the bottom of the single-page layout.",
-        "Footer contains the specified business details and a short disclaimer sentence."
-      ]
-    },
-    {
-      "id": "REQ-7",
-      "text": "Render newly generated static images (from frontend/public/assets/generated) in the site layout (hero and logo/mark) without routing images through the backend.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "वेबसाइट बना द"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Generated hero image and logo are included as static assets under frontend/public/assets/generated and are referenced directly by the frontend.",
-        "Images display crisply on mobile and desktop and do not break layout."
+        "A production (live) publish completes successfully without deployment errors.",
+        "Both backend canister and frontend assets build successfully as part of the live publish pipeline.",
+        "After live publish, the main site loads successfully and the hidden /admin route still renders the admin page."
       ]
     }
   ],
   "constraints": [
-    "Use English for any user-facing text in this build request (implementation may include the provided Hindi content as-is).",
-    "Backend must remain a single Motoko actor (no additional backend services).",
-    "Do not edit files in frontend immutablePaths; compose existing UI components instead.",
-    "No third-party email/SMS/WhatsApp messaging integrations; store form submissions on-canister instead."
+    "Respect the single-actor backend architecture; keep all Motoko logic in backend/main.mo and only add backend/migration.mo changes if an upgrade requires state migration.",
+    "Do not edit any files under frontend/src/components/ui or any other paths listed as immutable in SYSTEM_CONTEXT."
   ],
   "nonGoals": [
-    "Online payments or billing collection.",
-    "Appointment booking/calendar scheduling.",
-    "Third-party authentication providers (only Internet Identity is allowed if needed later).",
-    "Maps/geolocation integration (no embedded maps).",
-    "Real-time chat or WebSocket-based features."
+    "Implement WhatsApp notifications.",
+    "Implement email notifications or integrate with any external email delivery service."
   ],
   "imageRequirements": {
-    "required": [
-      "Minimal vector-style logo/mark featuring a small storefront + document motif, warm neutral palette with saffron/green accents (vaishnavi-logo.dim_512x512.png)",
-      "Wide hero banner illustration of a local digital services counter with subtle government-document icons, clean modern flat style (vaishnavi-hero.dim_1600x900.png)"
-    ],
+    "required": [],
     "edits": []
   }
 }

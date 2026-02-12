@@ -14,6 +14,7 @@ export interface Inquiry {
     internal: boolean;
     inquiryType: InquiryType;
     name: string;
+    read: boolean;
     email?: string;
     message: string;
     timestamp: Time;
@@ -34,6 +35,7 @@ export enum UserRole {
 export interface backendInterface {
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     deleteInquiry(id: bigint): Promise<void>;
+    exportAllInquiries(): Promise<Array<Inquiry>>;
     getAllInquiries(): Promise<Array<Inquiry>>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
@@ -44,6 +46,7 @@ export interface backendInterface {
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     isCallerAdmin(): Promise<boolean>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
+    setInquiryReadStatus(id: bigint, read: boolean): Promise<void>;
     submitInquiry(inquiryType: InquiryType, name: string, phoneNumber: string, email: string | null, message: string, serviceCategory: string | null): Promise<bigint>;
     submitInternalInquiry(inquiryType: InquiryType, name: string, phoneNumber: string, email: string | null, message: string, serviceCategory: string | null): Promise<bigint>;
     updateInquiry(id: bigint, updatedInquiry: Inquiry): Promise<void>;

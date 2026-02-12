@@ -1,75 +1,54 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-12T04:33:25.664Z",
-  "summary": "Most frontend requirements (single-page sections with navigation, services listing, contact details with tel/WhatsApp links, inquiry form UI, theme, footer, and static hero/logo usage) appear implemented. The main gap is backend persistence: inquiries are stored in in-memory Maps/vars with no shown stable storage or upgrade hooks, so submissions likely won’t persist across upgrades as required. Several extra features were added (access control/admin token plumbing, user profiles, internal inquiries, and a Caffeine.ai footer attribution) that were not requested.",
+  "generatedAt": "2026-02-12T05:35:53.246Z",
+  "summary": "Diff primarily adds SPA fallback/static files for routing (404.html and admin/index.html) and adjusts frontend routing logic for /admin (including trailing slash). It also includes substantial backend/main.mo changes around inquiries, access control checks, and user profile management that are not clearly tied to the deployment/publish error fix from REQ-13.",
   "missing_requirements": [
     {
-      "id": "REQ-4",
-      "requirement": "Backend stores submissions in stable state so data persists across canister upgrades.",
-      "reason": "The backend defines `let inquiries = Map.empty<Nat, Inquiry>();` and `var nextId = 0` without any shown `stable` variables or `preupgrade/postupgrade` logic. This indicates inquiries/IDs are not persisted across upgrades (diff is truncated, but no stable storage is visible in the provided content).",
+      "id": "REQ-13",
+      "requirement": "A production (live) publish completes successfully without deployment errors; both backend canister and frontend assets build successfully as part of the live publish pipeline.",
+      "reason": "The diff shows code/content changes but does not include build/pipeline configuration changes or any evidence (e.g., build scripts, deployment config, CI logs) demonstrating that the production publish/deployment error is resolved and that both backend and frontend build successfully in the live publish pipeline.",
       "evidence": [
+        "frontend/public/404.html",
+        "frontend/public/admin/index.html",
+        "frontend/src/App.tsx",
         "backend/main.mo"
+      ]
+    },
+    {
+      "id": "REQ-13",
+      "requirement": "After live publish, the main site loads successfully and the hidden /admin route still renders the admin page.",
+      "reason": "The diff improves routing behavior for /admin and adds fallback pages, but it does not provide deploy/runtime evidence that production routing actually serves these assets correctly after publish (e.g., asset canister routing behavior/config).",
+      "evidence": [
+        "frontend/src/App.tsx",
+        "frontend/public/404.html",
+        "frontend/public/admin/index.html"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "User profile management endpoints (get/save caller profile, get profile by principal).",
-      "reason": "BuildRequest does not ask for user profiles; only inquiry submission + admin retrieval is required.",
+      "description": "Added/expanded backend user profile management (get/save caller profile, profile access checks).",
+      "reason": "REQ-13 is scoped to investigating/fixing a production deployment error when publishing Draft Version 2 live; it does not request new backend user profile functionality.",
       "evidence": [
         "backend/main.mo"
       ]
     },
     {
-      "description": "Additional access control/authorization mixin and admin-token initialization plumbing on the frontend (secret URL parameter, _initializeAccessControlWithSecret).",
-      "reason": "BuildRequest allows Internet Identity later but does not require adding admin-token URL/session handling or access-control initialization logic to support it.",
-      "evidence": [
-        "backend/main.mo",
-        "frontend/src/hooks/useActor.ts",
-        "frontend/src/utils/urlParams.ts"
-      ]
-    },
-    {
-      "description": "Internal inquiry submission endpoint (admin-only) separate from the public inquiry endpoint.",
-      "reason": "BuildRequest only requires accepting and storing customer inquiries and providing a retrieval method; it does not request a separate internal submission pathway.",
+      "description": "Added/expanded backend inquiry functionality (public inquiry submission, internal admin-only inquiries, admin-only retrieval including getAllInquiries/getPublicInquiries, additional inquiry fields such as internal/read).",
+      "reason": "REQ-13 does not ask for new inquiry features; these appear to be product functionality additions beyond the deployment-error fix.",
       "evidence": [
         "backend/main.mo"
-      ]
-    },
-    {
-      "description": "Footer attribution/marketing link to caffeine.ai with UTM tracking and a 'Built with' line.",
-      "reason": "REQ-6 only asks for business details plus a brief disclaimer; the added promotional attribution is not requested.",
-      "evidence": [
-        "frontend/src/components/Footer.tsx"
       ]
     }
   ],
-  "confidence": 0.72,
+  "confidence": 0.62,
   "changed_files": [
-    "all_files_summary.json",
     "backend/main.mo",
     "frontend-file-summaries.txt",
-    "frontend/index.css",
-    "frontend/index.html",
+    "frontend/public/404.html",
+    "frontend/public/admin/index.html",
     "frontend/src/App.tsx",
-    "frontend/src/components/BrandMark.tsx",
-    "frontend/src/components/Footer.tsx",
-    "frontend/src/components/InquiryForm.tsx",
-    "frontend/src/components/NavigationBar.tsx",
-    "frontend/src/components/sections/ContactSection.tsx",
-    "frontend/src/components/sections/FormSection.tsx",
-    "frontend/src/components/sections/HeroSection.tsx",
-    "frontend/src/components/sections/ServicesSection.tsx",
-    "frontend/src/components/sections/WhyChooseUsSection.tsx",
-    "frontend/src/content/siteContent.ts",
-    "frontend/src/hooks/useActor.ts",
-    "frontend/src/hooks/useInternetIdentity.ts",
-    "frontend/src/hooks/useQueries.ts",
-    "frontend/src/index.css",
-    "frontend/src/main.tsx",
-    "frontend/src/utils/urlParams.ts",
-    "frontend/tailwind.config.js",
     "project_state.json"
   ]
 }

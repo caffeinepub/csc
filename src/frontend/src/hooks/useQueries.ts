@@ -29,7 +29,7 @@ export function useSubmitInquiry() {
       return id;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['inquiries'] });
+      queryClient.invalidateQueries({ queryKey: ['adminInquiries'] });
     },
   });
 }

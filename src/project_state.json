@@ -1,16 +1,17 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 3,
+  "projectStateVersion": 7,
   "summary": "Website for “वैष्णवी ई-मित्र & CSC केन्द्र” (E-Mitra & CSC centre) in कोटा (माम), करौली, showcasing services, address, and contact details (Operator: Rahul Chavariya).",
   "architectural_notes": [
     "Site content/language: Hindi promotional content for Vaishnavi E-Mitra & CSC centre.",
-    "Key business details to display: Operator Rahul Chavariya; phone/WhatsApp +91-7426049215; location/address in Kota (Mam), Karauli."
+    "Key business details to display: Operator Rahul Chavariya; phone/WhatsApp +91-7426049215; location/address in Kota (Mam), Karauli.",
+    "Add a hidden /admin route protected by Internet Identity login to allow only the operator to view/manage form submissions.",
+    "Notification requirement clarified: notify only on new inquiry form submissions; preferred channel is email (WhatsApp requested but not supported on this platform)."
   ],
   "known_issues": [
-    "Form requirement is not fully specified (contact form vs service-request form vs both)."
+    "Attempt to publish Draft Version 2 live/production encountered a deployment error; user requested to try going live again."
   ],
-  "isFixRequest": false,
-  "imageRequirements": "## Required Images\n- Minimal vector-style logo/mark featuring a small storefront + document motif, warm neutral palette with saffron/green accents (vaishnavi-logo.dim_512x512.png)\n- Wide hero banner illustration of a local digital services counter with subtle government-document icons, clean modern flat style (vaishnavi-hero.dim_1600x900.png)",
+  "isFixRequest": true,
   "existing_features": [
     {
       "id": "feature-create-a-responsive-informational-website-for-csc-that-presents-the-business-name-tagline-location-operator-name-rahul-chavariya-and-contact-whatsapp-number-91-7426049215-using-the-user-provided-hindi-content-as-the-primary-copy",
@@ -59,6 +60,46 @@
         "REQ-7"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-create-a-private-admin-page-at-the-hidden-route-admin-that-allows-the-site-operator-to-view-all-inquiry-form-submissions-and-require-internet-identity-login-before-showing-any-submission-data",
+      "title": "Create a private Admin page at the hidden route \"/admin\" that allows the site operator to view all inquiry form submissions, and require Internet Identity login before showing any submission data.",
+      "reqIds": [
+        "REQ-8"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-on-the-admin-page-display-inquiry-submissions-in-a-readable-management-ui-table-or-cards-including-id-timestamp-inquiry-type-name-phone-number-optional-email-message-optional-service-category-and-whether-the-inquiry-is-internal",
+      "title": "On the Admin page, display inquiry submissions in a readable management UI (table or cards) including: id, timestamp, inquiry type, name, phone number, optional email, message, optional service category, and whether the inquiry is internal.",
+      "reqIds": [
+        "REQ-9"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-admin-actions-on-inquiries-delete-mark-as-read-unread-and-download-export-submissions",
+      "title": "Add Admin actions on inquiries: delete, mark as read/unread, and download/export submissions.",
+      "reqIds": [
+        "REQ-10"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-react-query-hooks-for-admin-inquiry-operations-list-mark-read-unread-delete-export-and-ensure-the-ui-stays-consistent-by-invalidating-refetching-inquiries-after-mutations",
+      "title": "Implement React Query hooks for admin inquiry operations (list, mark read/unread, delete, export) and ensure the UI stays consistent by invalidating/refetching inquiries after mutations.",
+      "reqIds": [
+        "REQ-12"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-investigate-and-fix-the-deployment-error-that-occurs-when-publishing-draft-version-2-to-production-live-ensuring-the-project-can-be-successfully-deployed-without-errors",
+      "title": "Investigate and fix the deployment error that occurs when publishing Draft Version 2 to production (live), ensuring the project can be successfully deployed without errors.",
+      "reqIds": [
+        "REQ-13"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -80,6 +121,26 @@
       "reqIds": [
         "REQ-4"
       ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-7",
+      "summary": "Add a private /admin page to view website form submissions, protected with Internet Identity login, with actions like delete, mark-as-read, and download/export.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-11",
+      "summary": "Extend the backend inquiry model and API to support a read/unread status and exporting data for the admin page, while keeping inquiry submission public as it is now.",
+      "reqIds": [
+        "REQ-11"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-12",
+      "summary": "Send operator notifications for new website inquiry form submissions via email (since WhatsApp notifications were requested but are not supported).",
+      "reqIds": [],
       "status": "pending"
     }
   ],

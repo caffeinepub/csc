@@ -16,6 +16,7 @@ export interface Inquiry {
   'internal' : boolean,
   'inquiryType' : InquiryType,
   'name' : string,
+  'read' : boolean,
   'email' : [] | [string],
   'message' : string,
   'timestamp' : Time,
@@ -32,6 +33,7 @@ export interface _SERVICE {
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
   'deleteInquiry' : ActorMethod<[bigint], undefined>,
+  'exportAllInquiries' : ActorMethod<[], Array<Inquiry>>,
   'getAllInquiries' : ActorMethod<[], Array<Inquiry>>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
@@ -42,6 +44,7 @@ export interface _SERVICE {
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
+  'setInquiryReadStatus' : ActorMethod<[bigint, boolean], undefined>,
   'submitInquiry' : ActorMethod<
     [InquiryType, string, string, [] | [string], string, [] | [string]],
     bigint

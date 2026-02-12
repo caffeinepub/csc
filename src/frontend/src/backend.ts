@@ -96,6 +96,7 @@ export interface Inquiry {
     internal: boolean;
     inquiryType: InquiryType;
     name: string;
+    read: boolean;
     email?: string;
     message: string;
     timestamp: Time;
@@ -117,6 +118,7 @@ export interface backendInterface {
     _initializeAccessControlWithSecret(userSecret: string): Promise<void>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     deleteInquiry(id: bigint): Promise<void>;
+    exportAllInquiries(): Promise<Array<Inquiry>>;
     getAllInquiries(): Promise<Array<Inquiry>>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
@@ -127,6 +129,7 @@ export interface backendInterface {
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     isCallerAdmin(): Promise<boolean>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
+    setInquiryReadStatus(id: bigint, read: boolean): Promise<void>;
     submitInquiry(inquiryType: InquiryType, name: string, phoneNumber: string, email: string | null, message: string, serviceCategory: string | null): Promise<bigint>;
     submitInternalInquiry(inquiryType: InquiryType, name: string, phoneNumber: string, email: string | null, message: string, serviceCategory: string | null): Promise<bigint>;
     updateInquiry(id: bigint, updatedInquiry: Inquiry): Promise<void>;
@@ -174,6 +177,20 @@ export class Backend implements backendInterface {
         } else {
             const result = await this.actor.deleteInquiry(arg0);
             return result;
+        }
+    }
+    async exportAllInquiries(): Promise<Array<Inquiry>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.exportAllInquiries();
+                return from_candid_vec_n3(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.exportAllInquiries();
+            return from_candid_vec_n3(this._uploadFile, this._downloadFile, result);
         }
     }
     async getAllInquiries(): Promise<Array<Inquiry>> {
@@ -316,6 +333,20 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async setInquiryReadStatus(arg0: bigint, arg1: boolean): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.setInquiryReadStatus(arg0, arg1);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.setInquiryReadStatus(arg0, arg1);
+            return result;
+        }
+    }
     async submitInquiry(arg0: InquiryType, arg1: string, arg2: string, arg3: string | null, arg4: string, arg5: string | null): Promise<bigint> {
         if (this.processError) {
             try {
@@ -380,6 +411,7 @@ function from_candid_record_n5(_uploadFile: (file: ExternalBlob) => Promise<Uint
     internal: boolean;
     inquiryType: _InquiryType;
     name: string;
+    read: boolean;
     email: [] | [string];
     message: string;
     timestamp: _Time;
@@ -390,6 +422,7 @@ function from_candid_record_n5(_uploadFile: (file: ExternalBlob) => Promise<Uint
     internal: boolean;
     inquiryType: InquiryType;
     name: string;
+    read: boolean;
     email?: string;
     message: string;
     timestamp: Time;
@@ -401,6 +434,7 @@ function from_candid_record_n5(_uploadFile: (file: ExternalBlob) => Promise<Uint
         internal: value.internal,
         inquiryType: from_candid_InquiryType_n7(_uploadFile, _downloadFile, value.inquiryType),
         name: value.name,
+        read: value.read,
         email: record_opt_to_undefined(from_candid_opt_n6(_uploadFile, _downloadFile, value.email)),
         message: value.message,
         timestamp: value.timestamp,
@@ -444,6 +478,7 @@ function to_candid_record_n16(_uploadFile: (file: ExternalBlob) => Promise<Uint8
     internal: boolean;
     inquiryType: InquiryType;
     name: string;
+    read: boolean;
     email?: string;
     message: string;
     timestamp: Time;
@@ -454,6 +489,7 @@ function to_candid_record_n16(_uploadFile: (file: ExternalBlob) => Promise<Uint8
     internal: boolean;
     inquiryType: _InquiryType;
     name: string;
+    read: boolean;
     email: [] | [string];
     message: string;
     timestamp: _Time;
@@ -465,6 +501,7 @@ function to_candid_record_n16(_uploadFile: (file: ExternalBlob) => Promise<Uint8
         internal: value.internal,
         inquiryType: to_candid_InquiryType_n12(_uploadFile, _downloadFile, value.inquiryType),
         name: value.name,
+        read: value.read,
         email: value.email ? candid_some(value.email) : candid_none(),
         message: value.message,
         timestamp: value.timestamp,

@@ -24,6 +24,7 @@ export const Inquiry = IDL.Record({
   'internal' : IDL.Bool,
   'inquiryType' : InquiryType,
   'name' : IDL.Text,
+  'read' : IDL.Bool,
   'email' : IDL.Opt(IDL.Text),
   'message' : IDL.Text,
   'timestamp' : Time,
@@ -35,6 +36,7 @@ export const idlService = IDL.Service({
   '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
   'deleteInquiry' : IDL.Func([IDL.Nat], [], []),
+  'exportAllInquiries' : IDL.Func([], [IDL.Vec(Inquiry)], ['query']),
   'getAllInquiries' : IDL.Func([], [IDL.Vec(Inquiry)], ['query']),
   'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
@@ -57,6 +59,7 @@ export const idlService = IDL.Service({
     ),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+  'setInquiryReadStatus' : IDL.Func([IDL.Nat, IDL.Bool], [], []),
   'submitInquiry' : IDL.Func(
       [
         InquiryType,
@@ -103,6 +106,7 @@ export const idlFactory = ({ IDL }) => {
     'internal' : IDL.Bool,
     'inquiryType' : InquiryType,
     'name' : IDL.Text,
+    'read' : IDL.Bool,
     'email' : IDL.Opt(IDL.Text),
     'message' : IDL.Text,
     'timestamp' : Time,
@@ -114,6 +118,7 @@ export const idlFactory = ({ IDL }) => {
     '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
     'deleteInquiry' : IDL.Func([IDL.Nat], [], []),
+    'exportAllInquiries' : IDL.Func([], [IDL.Vec(Inquiry)], ['query']),
     'getAllInquiries' : IDL.Func([], [IDL.Vec(Inquiry)], ['query']),
     'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
     'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
@@ -136,6 +141,7 @@ export const idlFactory = ({ IDL }) => {
       ),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+    'setInquiryReadStatus' : IDL.Func([IDL.Nat, IDL.Bool], [], []),
     'submitInquiry' : IDL.Func(
         [
           InquiryType,

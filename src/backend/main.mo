@@ -25,6 +25,7 @@ actor {
     message : Text;
     serviceCategory : ?Text;
     internal : Bool;
+    read : Bool;
   };
 
   public type UserProfile = {
@@ -77,6 +78,7 @@ actor {
       message;
       serviceCategory;
       internal = false;
+      read = false;
     };
     inquiries.add(id, newInquiry);
     nextId += 1;
@@ -107,6 +109,7 @@ actor {
       message;
       serviceCategory;
       internal = true;
+      read = false;
     };
     inquiries.add(id, newInquiry);
     nextId += 1;
@@ -140,7 +143,7 @@ actor {
     if (not AccessControl.isAdmin(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Only admins can view inquiries");
     };
-    inquiries.values().toArray().filter<Inquiry>(func(inq) { not inq.internal });
+    inquiries.values().toArray().filter(func(inq) { not inq.internal });
   };
 
   // Admin-only: get first N public inquiries
@@ -167,7 +170,7 @@ actor {
     Array.tabulate<Inquiry>(amount, func(i) { internalInquiries[i] });
   };
 
-  // Admin-only: update inquiry
+  // Admin-only: update inquiries
   public shared ({ caller }) func updateInquiry(id : Nat, updatedInquiry : Inquiry) : async () {
     if (not AccessControl.isAdmin(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Only admins can update inquiries");
@@ -175,6 +178,23 @@ actor {
 
     switch (inquiries.get(id)) {
       case (?_) {
+        inquiries.add(id, updatedInquiry);
+      };
+      case (_) {
+        Runtime.trap("Inquiry not found");
+      };
+    };
+  };
+
+  // Admin-only: update inquiry read status
+  public shared ({ caller }) func setInquiryReadStatus(id : Nat, read : Bool) : async () {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admins can update inquiry read status");
+    };
+
+    switch (inquiries.get(id)) {
+      case (?inquiry) {
+        let updatedInquiry = { inquiry with read };
         inquiries.add(id, updatedInquiry);
       };
       case (_) {
@@ -197,5 +217,13 @@ actor {
         Runtime.trap("Inquiry not found");
       };
     };
+  };
+
+  // Export functionality for admin
+  public query ({ caller }) func exportAllInquiries() : async [Inquiry] {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admins can export all inquiries");
+    };
+    inquiries.values().toArray();
   };
 };
