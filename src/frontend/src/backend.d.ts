@@ -8,6 +8,12 @@ export interface None {
 }
 export type Option<T> = Some<T> | None;
 export type Time = bigint;
+export interface SessionEntity {
+    id: string;
+    modifiedAt?: Time;
+    createdAt: Time;
+    user: UserEntity;
+}
 export interface Inquiry {
     id: bigint;
     serviceCategory?: string;
@@ -22,6 +28,14 @@ export interface Inquiry {
 }
 export interface UserProfile {
     name: string;
+}
+export interface UserEntity {
+    id: string;
+    modifiedAt?: Time;
+    name: string;
+    createdAt: Time;
+    role: string;
+    email?: string;
 }
 export enum InquiryType {
     contact = "contact",
@@ -40,6 +54,9 @@ export interface backendInterface {
     getCallerUserRole(): Promise<UserRole>;
     getHealthStatus(): Promise<string>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
+    initializeAdmin(userId: string): Promise<SessionEntity | null>;
+    isAdminCall(): Promise<boolean>;
+    isAuthorizedAdminQuery(): Promise<boolean>;
     isCallerAdmin(): Promise<boolean>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     setInquiryReadStatus(inquiryId: bigint, read: boolean): Promise<void>;

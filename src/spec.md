@@ -1,12 +1,12 @@
 # Specification
 
 ## Summary
-**Goal:** Make the admin secret deterministically grant admin privileges to any caller who provides the correct token, and expose a reliable `isCallerAdmin()` query for the frontend.
+**Goal:** Fix the admin-session initialization hang so Official Login reliably transitions to the Admin Dashboard without waiting on any legacy token-handshake or timing out.
 
 **Planned changes:**
-- Update backend admin-session bootstrapping so `_initializeAccessControlWithSecret("admin-secret-token-2024")` grants admin privileges to the *current caller* every time, without being blocked by a one-time/global “admin already assigned” state.
-- Ensure admin authorization is tracked per-caller so multiple different principals can independently become admin by providing the correct secret.
-- Add/confirm a backend query method `isCallerAdmin()` that returns whether the current caller is authorized as admin, reflecting the per-caller state set by `_initializeAccessControlWithSecret`.
-- Preserve existing behavior for incorrect secrets: no admin privileges are granted and admin-gated APIs continue to return Unauthorized.
+- Update the `/admin` initialization flow to treat a valid backend session response (e.g., `session.user` with `role === "admin"`) as immediate success, stopping the “Initializing Admin Session” spinner promptly and rendering the dashboard.
+- Remove/disable client-side checks that block admin initialization or admin queries solely due to missing admin tokens, and rely on `sessionStorage.officialUserId` plus the backend-returned session object for admin authorization state.
+- Ensure successful Official Login auto-navigates to `/admin`, starts admin initialization deterministically, and proceeds to inquiries loading without additional manual clicks.
+- Redeploy updated frontend assets and run the documented production smoke test for Official Login → `/admin` initialization and inquiry visibility to confirm the timeout/spinner issue is resolved.
 
-**User-visible outcome:** Entering the correct admin secret (`admin-secret-token-2024`) reliably enables admin access for the current logged-in session, and the admin dashboard can confirm admin status via `isCallerAdmin()` instead of showing “Admin Session Initialization Failed.”
+**User-visible outcome:** After logging in via Official Login, the app immediately navigates to `/admin` and the Admin Dashboard loads without a long “Initializing Admin Session” spinner or timeout; inquiries (or the existing empty state) appear as expected.

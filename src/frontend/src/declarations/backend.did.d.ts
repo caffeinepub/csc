@@ -24,7 +24,21 @@ export interface Inquiry {
 }
 export type InquiryType = { 'contact' : null } |
   { 'serviceRequest' : null };
+export interface SessionEntity {
+  'id' : string,
+  'modifiedAt' : [] | [Time],
+  'createdAt' : Time,
+  'user' : UserEntity,
+}
 export type Time = bigint;
+export interface UserEntity {
+  'id' : string,
+  'modifiedAt' : [] | [Time],
+  'name' : string,
+  'createdAt' : Time,
+  'role' : string,
+  'email' : [] | [string],
+}
 export interface UserProfile { 'name' : string }
 export type UserRole = { 'admin' : null } |
   { 'user' : null } |
@@ -38,6 +52,9 @@ export interface _SERVICE {
   'getCallerUserRole' : ActorMethod<[], UserRole>,
   'getHealthStatus' : ActorMethod<[], string>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
+  'initializeAdmin' : ActorMethod<[string], [] | [SessionEntity]>,
+  'isAdminCall' : ActorMethod<[], boolean>,
+  'isAuthorizedAdminQuery' : ActorMethod<[], boolean>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
   'setInquiryReadStatus' : ActorMethod<[bigint, boolean], undefined>,

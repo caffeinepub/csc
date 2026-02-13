@@ -1,4 +1,64 @@
 {
   "kind": "feature_evidence_report",
-  "features": []
+  "features": [
+    {
+      "featureId": "feature-update-the-frontend-admin-session-initialization-flow-so-it-no-longer-waits-for-any-legacy-token-handshake-and-instead-treats-any-valid-positive-backend-session-response-as-success-stop-the-loading-spinner-immediately-and-allow-the-admin-dashboard-to-render-and-navigate-to-admin-where-applicable",
+      "featureTitle": "Update the frontend admin-session initialization flow so it no longer waits for any legacy token-handshake and instead treats any valid/positive backend session response as success: stop the loading spinner immediately and allow the Admin Dashboard to render (and navigate to /admin where applicable).",
+      "files": [
+        "frontend/src/hooks/useAdminActor.ts",
+        "frontend/src/pages/AdminPage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-140"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-remove-any-client-side-gating-that-blocks-admin-initialization-or-admin-queries-based-on-the-presence-absence-of-an-admin-token-e-g-patterns-like-if-token-return-error-and-ensure-the-admin-session-relies-on-the-stored-official-user-id-sessionstorage-key-officialuserid-plus-the-backend-s-returned-session-object-for-authorization-state",
+      "featureTitle": "Remove any client-side gating that blocks admin initialization or admin queries based on the presence/absence of an admin token (e.g., patterns like `if (!token) return error`), and ensure the admin session relies on the stored official user ID (sessionStorage key `officialUserId`) plus the backend’s returned session object for authorization state.",
+      "files": [
+        "frontend/src/hooks/useAdminActor.ts"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-141"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-redeploy-the-updated-frontend-assets-and-run-the-repository-s-documented-production-smoke-test-steps-relevant-to-official-login-admin-initialization-and-inquiry-visibility-to-confirm-the-hotfix-resolves-the-spinner-timeout-issue-shown-in-the-uploaded-screenshot",
+      "featureTitle": "Redeploy the updated frontend assets and run the repository’s documented production smoke test steps relevant to Official Login → `/admin` initialization and inquiry visibility to confirm the hotfix resolves the spinner/timeout issue shown in the uploaded screenshot.",
+      "files": [
+        "frontend/PREVIEW_VALIDATION_CHECKLIST.md",
+        "frontend/PRODUCTION_SMOKE_TEST.md"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-143"
+      ],
+      "confidence": "high"
+    }
+  ]
 }

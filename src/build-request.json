@@ -1,68 +1,97 @@
 {
   "kind": "build_request",
-  "title": "Make admin secret deterministically grant admin privileges to any caller",
+  "title": "High-priority frontend hotfix: stop admin initialization spinner/timeout and trust backend session response",
   "priority": "high",
   "requirements": [
     {
-      "id": "REQ-98",
-      "text": "Update backend admin-session bootstrapping so that calling `_initializeAccessControlWithSecret(secret)` with the correct secret `admin-secret-token-2024` ALWAYS grants admin privileges to the current caller (the principal making the call), regardless of whether another principal was previously granted admin.",
-      "target": "backend",
+      "id": "REQ-140",
+      "text": "Update the frontend admin-session initialization flow so it no longer waits for any legacy token-handshake and instead treats any valid/positive backend session response as success: stop the loading spinner immediately and allow the Admin Dashboard to render (and navigate to /admin where applicable).",
+      "target": "frontend",
       "source": {
         "messageIds": [
           "recent-messages"
         ],
         "quotes": [
-          "YES, MAKE SECRET ALWAYS GIVE ADMIN"
+          "Frontend अभी भी 'Initializing Spinner' पर 30 सेकंड तक अटकता है और फिर Timeout हो जाता है।",
+          "Frontend Client Code अभी भी पुराने 'Token Handshake' का इंतज़ार कर रहा है, जबकि Backend अब सीधा 'User Object' भेज रहा है।",
+          "Force Redirect: login() या initializeSession() फंक्शन में ऐसा कोड लिखें कि जैसे ही Backend से कोई भी Positive Response मिले, वह तुरंत Loading बंद करे और Dashboard पर भेज दे।"
         ]
       },
       "acceptanceCriteria": [
-        "Given any principal P1, when P1 calls `_initializeAccessControlWithSecret(\"admin-secret-token-2024\")`, then subsequent calls by P1 to admin-gated APIs (at minimum `getAllInquiries`, `setInquiryReadStatus`, `deleteInquiry`) succeed without Unauthorized errors.",
-        "Given a different principal P2 (not equal to P1), when P2 calls `_initializeAccessControlWithSecret(\"admin-secret-token-2024\")`, then subsequent calls by P2 to admin-gated APIs also succeed (i.e., admin is not restricted to the first principal).",
-        "The initialization must not rely on or enforce a single global 'already initialized/admin assigned' flag that prevents later callers from becoming admin when using the correct secret.",
-        "If the secret is incorrect, `_initializeAccessControlWithSecret` must not grant admin privileges and admin-gated APIs must continue to fail with an Unauthorized error."
+        "After Official Login succeeds, navigating to /admin does not remain on the \"Initializing Admin Session\" screen for ~30 seconds; the spinner stops promptly once the backend returns a valid SessionEntity user object.",
+        "The frontend considers the backend response successful when a correctly shaped session object is returned (e.g., session.user exists and session.user.role === \"admin\"), without requiring any legacy token-handshake state to complete.",
+        "No user-facing timeout occurs if the backend returns a successful session quickly; the UI proceeds to the dashboard view immediately."
       ]
     },
     {
-      "id": "REQ-99",
-      "text": "Ensure the backend exposes a query method `isCallerAdmin()` that returns whether the current caller is authorized as admin, and that its result reflects the updated per-caller admin authorization state granted by `_initializeAccessControlWithSecret`.",
-      "target": "backend",
+      "id": "REQ-141",
+      "text": "Remove any client-side gating that blocks admin initialization or admin queries based on the presence/absence of an admin token (e.g., patterns like `if (!token) return error`), and ensure the admin session relies on the stored official user ID (sessionStorage key `officialUserId`) plus the backend’s returned session object for authorization state.",
+      "target": "frontend",
       "source": {
         "messageIds": [
           "recent-messages"
         ],
         "quotes": [
-          "YES, MAKE SECRET ALWAYS GIVE ADMIN"
+          "Remove Client-Side Token Check: अगर Frontend कोड में कहीं भी if (!token) return error लिखा है, तो उसे हटा दें।",
+          "Trust Backend: Frontend को कहें कि वह Backend के JSON जवाब को स्वीकार करे और पेज खोल दे।"
         ]
       },
       "acceptanceCriteria": [
-        "After calling `_initializeAccessControlWithSecret(\"admin-secret-token-2024\")`, `isCallerAdmin()` returns `true` for that caller.",
-        "Without calling `_initializeAccessControlWithSecret` (or after calling it with a wrong secret), `isCallerAdmin()` returns `false` for that caller.",
-        "`useAdminActor` (frontend) can successfully call `isCallerAdmin()` without backend traps, and the admin dashboard no longer shows “Admin Session Initialization Failed” due to missing admin privileges when the correct secret is used."
+        "There is no code path in the Official Login → /admin initialization flow that fails solely because an admin token is missing.",
+        "Admin actor initialization remains enabled when `officialUserId` is present (as in current `useAdminActor` behavior) and does not require `caffeineAdminToken` for the K107172621 bypass flow.",
+        "If the backend returns a valid admin session object, the frontend does not override it with a local token-required error."
+      ]
+    },
+    {
+      "id": "REQ-142",
+      "text": "Ensure that after a successful Official Login (User ID `K107172621`, Password `Karauli#34`), the app immediately navigates to `/admin` and the admin session initialization begins deterministically; once initialized, inquiries fetch proceeds without additional manual clicks.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "recent-messages"
+        ],
+        "quotes": [
+          "इसे High Priority पर ठीक करें और Frontend Assets को Redeploy करें।"
+        ]
+      },
+      "acceptanceCriteria": [
+        "From the homepage Official Login dialog, upon successful credentials entry, the app navigates to `/admin` automatically.",
+        "On `/admin`, the admin actor initialization runs once prerequisites are present and transitions into the normal dashboard state without a long spinner/timeout when the backend is responsive.",
+        "If inquiries exist, they appear; if none exist, the dashboard shows the existing empty-state UI or the existing demo fallback (whichever is implemented), but not an initialization timeout screen."
+      ]
+    },
+    {
+      "id": "REQ-143",
+      "text": "Redeploy the updated frontend assets and run the repository’s documented production smoke test steps relevant to Official Login → `/admin` initialization and inquiry visibility to confirm the hotfix resolves the spinner/timeout issue shown in the uploaded screenshot.",
+      "target": "unknown",
+      "source": {
+        "messageIds": [
+          "recent-messages"
+        ],
+        "quotes": [
+          "हाँ, तुरंत Hotfix लगाओ।"
+        ]
+      },
+      "acceptanceCriteria": [
+        "A new build is produced and deployed with the frontend changes.",
+        "In the deployed environment, Official Login → `/admin` no longer gets stuck on the \"Initializing Admin Session\" screen as shown in the screenshot.",
+        "The documented smoke test steps for Official Login and admin dashboard initialization complete without a timeout."
       ]
     }
   ],
   "constraints": [
-    "Backend must remain a single Motoko actor with logic in `backend/main.mo` (respect single-actor architecture).",
-    "Do not change the Official Login credential values or admin secret token value; keep token exactly `admin-secret-token-2024` and the sessionStorage key exactly `caffeineAdminToken`.",
-    "Use English for any user-facing text."
+    "Do not edit any files under frontend/immutablePaths (e.g., frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui/*). Compose or extend behavior elsewhere if needed.",
+    "Keep all user-facing UI text in English.",
+    "Do not change public inquiry submission behavior or the inquiry form UX as part of this hotfix.",
+    "Respect the simplified backend bypass model: Official user ID `K107172621` is treated as admin by backend and frontend must trust the backend’s returned session object."
   ],
   "nonGoals": [
-    "Do not implement new authentication methods (e.g., third-party auth, Internet Identity changes) as part of this change.",
-    "Do not redesign the admin dashboard UI beyond what is necessary to support the corrected backend authorization behavior.",
-    "Do not change inquiry persistence/migration behavior in this request unless required to implement the admin-authorization fix."
+    "Backend authorization refactors (backend is reported fixed already for this issue).",
+    "Adding new authentication providers or Internet Identity changes.",
+    "Changing the overall site marketing content/layout unrelated to the /admin initialization hang."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
-  },
-  "userProfileUpdate": {
-    "goalsToAdd": [],
-    "goalsToRemove": [],
-    "preferencesToAdd": [],
-    "preferencesToRemove": [],
-    "miscToAdd": [],
-    "miscToRemove": [],
-    "fieldsToSet": {},
-    "fieldsToDelete": []
   }
 }

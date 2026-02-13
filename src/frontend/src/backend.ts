@@ -90,6 +90,12 @@ export class ExternalBlob {
     }
 }
 export type Time = bigint;
+export interface SessionEntity {
+    id: string;
+    modifiedAt?: Time;
+    createdAt: Time;
+    user: UserEntity;
+}
 export interface Inquiry {
     id: bigint;
     serviceCategory?: string;
@@ -104,6 +110,14 @@ export interface Inquiry {
 }
 export interface UserProfile {
     name: string;
+}
+export interface UserEntity {
+    id: string;
+    modifiedAt?: Time;
+    name: string;
+    createdAt: Time;
+    role: string;
+    email?: string;
 }
 export enum InquiryType {
     contact = "contact",
@@ -123,12 +137,15 @@ export interface backendInterface {
     getCallerUserRole(): Promise<UserRole>;
     getHealthStatus(): Promise<string>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
+    initializeAdmin(userId: string): Promise<SessionEntity | null>;
+    isAdminCall(): Promise<boolean>;
+    isAuthorizedAdminQuery(): Promise<boolean>;
     isCallerAdmin(): Promise<boolean>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     setInquiryReadStatus(inquiryId: bigint, read: boolean): Promise<void>;
     submitInquiry(inquiryType: InquiryType, name: string, phoneNumber: string, email: string | null, message: string, serviceCategory: string | null): Promise<bigint>;
 }
-import type { Inquiry as _Inquiry, InquiryType as _InquiryType, Time as _Time, UserProfile as _UserProfile, UserRole as _UserRole } from "./declarations/backend.did.d.ts";
+import type { Inquiry as _Inquiry, InquiryType as _InquiryType, SessionEntity as _SessionEntity, Time as _Time, UserEntity as _UserEntity, UserProfile as _UserProfile, UserRole as _UserRole } from "./declarations/backend.did.d.ts";
 export class Backend implements backendInterface {
     constructor(private actor: ActorSubclass<_SERVICE>, private _uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, private _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, private processError?: (error: unknown) => never){}
     async _initializeAccessControlWithSecret(arg0: string): Promise<void> {
@@ -243,6 +260,48 @@ export class Backend implements backendInterface {
             return from_candid_opt_n9(this._uploadFile, this._downloadFile, result);
         }
     }
+    async initializeAdmin(arg0: string): Promise<SessionEntity | null> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.initializeAdmin(arg0);
+                return from_candid_opt_n12(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.initializeAdmin(arg0);
+            return from_candid_opt_n12(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async isAdminCall(): Promise<boolean> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.isAdminCall();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.isAdminCall();
+            return result;
+        }
+    }
+    async isAuthorizedAdminQuery(): Promise<boolean> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.isAuthorizedAdminQuery();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.isAuthorizedAdminQuery();
+            return result;
+        }
+    }
     async isCallerAdmin(): Promise<boolean> {
         if (this.processError) {
             try {
@@ -288,14 +347,14 @@ export class Backend implements backendInterface {
     async submitInquiry(arg0: InquiryType, arg1: string, arg2: string, arg3: string | null, arg4: string, arg5: string | null): Promise<bigint> {
         if (this.processError) {
             try {
-                const result = await this.actor.submitInquiry(to_candid_InquiryType_n12(this._uploadFile, this._downloadFile, arg0), arg1, arg2, to_candid_opt_n14(this._uploadFile, this._downloadFile, arg3), arg4, to_candid_opt_n14(this._uploadFile, this._downloadFile, arg5));
+                const result = await this.actor.submitInquiry(to_candid_InquiryType_n18(this._uploadFile, this._downloadFile, arg0), arg1, arg2, to_candid_opt_n20(this._uploadFile, this._downloadFile, arg3), arg4, to_candid_opt_n20(this._uploadFile, this._downloadFile, arg5));
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.submitInquiry(to_candid_InquiryType_n12(this._uploadFile, this._downloadFile, arg0), arg1, arg2, to_candid_opt_n14(this._uploadFile, this._downloadFile, arg3), arg4, to_candid_opt_n14(this._uploadFile, this._downloadFile, arg5));
+            const result = await this.actor.submitInquiry(to_candid_InquiryType_n18(this._uploadFile, this._downloadFile, arg0), arg1, arg2, to_candid_opt_n20(this._uploadFile, this._downloadFile, arg3), arg4, to_candid_opt_n20(this._uploadFile, this._downloadFile, arg5));
             return result;
         }
     }
@@ -306,14 +365,68 @@ function from_candid_InquiryType_n7(_uploadFile: (file: ExternalBlob) => Promise
 function from_candid_Inquiry_n4(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _Inquiry): Inquiry {
     return from_candid_record_n5(_uploadFile, _downloadFile, value);
 }
+function from_candid_SessionEntity_n13(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _SessionEntity): SessionEntity {
+    return from_candid_record_n14(_uploadFile, _downloadFile, value);
+}
+function from_candid_UserEntity_n16(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _UserEntity): UserEntity {
+    return from_candid_record_n17(_uploadFile, _downloadFile, value);
+}
 function from_candid_UserRole_n10(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _UserRole): UserRole {
     return from_candid_variant_n11(_uploadFile, _downloadFile, value);
+}
+function from_candid_opt_n12(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_SessionEntity]): SessionEntity | null {
+    return value.length === 0 ? null : from_candid_SessionEntity_n13(_uploadFile, _downloadFile, value[0]);
+}
+function from_candid_opt_n15(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_Time]): Time | null {
+    return value.length === 0 ? null : value[0];
 }
 function from_candid_opt_n6(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [string]): string | null {
     return value.length === 0 ? null : value[0];
 }
 function from_candid_opt_n9(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_UserProfile]): UserProfile | null {
     return value.length === 0 ? null : value[0];
+}
+function from_candid_record_n14(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    id: string;
+    modifiedAt: [] | [_Time];
+    createdAt: _Time;
+    user: _UserEntity;
+}): {
+    id: string;
+    modifiedAt?: Time;
+    createdAt: Time;
+    user: UserEntity;
+} {
+    return {
+        id: value.id,
+        modifiedAt: record_opt_to_undefined(from_candid_opt_n15(_uploadFile, _downloadFile, value.modifiedAt)),
+        createdAt: value.createdAt,
+        user: from_candid_UserEntity_n16(_uploadFile, _downloadFile, value.user)
+    };
+}
+function from_candid_record_n17(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    id: string;
+    modifiedAt: [] | [_Time];
+    name: string;
+    createdAt: _Time;
+    role: string;
+    email: [] | [string];
+}): {
+    id: string;
+    modifiedAt?: Time;
+    name: string;
+    createdAt: Time;
+    role: string;
+    email?: string;
+} {
+    return {
+        id: value.id,
+        modifiedAt: record_opt_to_undefined(from_candid_opt_n15(_uploadFile, _downloadFile, value.modifiedAt)),
+        name: value.name,
+        createdAt: value.createdAt,
+        role: value.role,
+        email: record_opt_to_undefined(from_candid_opt_n6(_uploadFile, _downloadFile, value.email))
+    };
 }
 function from_candid_record_n5(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     id: bigint;
@@ -370,16 +483,16 @@ function from_candid_variant_n8(_uploadFile: (file: ExternalBlob) => Promise<Uin
 function from_candid_vec_n3(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_Inquiry>): Array<Inquiry> {
     return value.map((x)=>from_candid_Inquiry_n4(_uploadFile, _downloadFile, x));
 }
-function to_candid_InquiryType_n12(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: InquiryType): _InquiryType {
-    return to_candid_variant_n13(_uploadFile, _downloadFile, value);
+function to_candid_InquiryType_n18(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: InquiryType): _InquiryType {
+    return to_candid_variant_n19(_uploadFile, _downloadFile, value);
 }
 function to_candid_UserRole_n1(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserRole): _UserRole {
     return to_candid_variant_n2(_uploadFile, _downloadFile, value);
 }
-function to_candid_opt_n14(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: string | null): [] | [string] {
+function to_candid_opt_n20(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: string | null): [] | [string] {
     return value === null ? candid_none() : candid_some(value);
 }
-function to_candid_variant_n13(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: InquiryType): {
+function to_candid_variant_n19(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: InquiryType): {
     contact: null;
 } | {
     serviceRequest: null;

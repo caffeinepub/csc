@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 61,
-  "summary": "Website for “वैष्णवी ई-मित्र & CSC केन्द्र” (E-Mitra & CSC centre) in कोटा (माम), करौली, showcasing services/contact/inquiry form, with an “Official Login” (custom username/password) that now uses User ID K107172621 (password unchanged) and should automatically open the admin/management dashboard after login, with additional admin features requested.",
+  "projectStateVersion": 81,
+  "summary": "Website for “वैष्णवी ई-मित्र & CSC केन्द्र” (E-Mitra & CSC centre) in कोटा (माम), करौली, showcasing services/contact/inquiry form, with an “Official Login” (custom username/password) using User ID K107172621 (password Karauli#34) that should open the admin dashboard after login; backend authorization must be simplified to a string-match Super Admin bypass: treat user_id as Text and, on every initialization/admin-authorization check, if user_id == \"K107172621\" then grant ADMIN_ROLE and completely ignore/bypass any token/role-assignment/check_admin_permission flows; ensure backend canister is started/running immediately after deploy in both Preview and Production.",
   "architectural_notes": [
     "Site content/language: Hindi promotional content for Vaishnavi E-Mitra & CSC centre.",
     "Key business details to display: Operator Rahul Chavariya; phone/WhatsApp +91-7426049215; location/address in Kota (Mam), Karauli.",
@@ -643,6 +643,134 @@
         "REQ-97"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-implement-the-backend-authorization-fix-as-a-series-of-small-isolated-code-changes-that-can-be-applied-incrementally-avoid-large-refactors-in-a-single-patch-while-keeping-the-existing-public-inquiry-submission-flow-unchanged",
+      "title": "Implement the backend authorization fix as a series of small, isolated code changes that can be applied incrementally (avoid large refactors in a single patch), while keeping the existing public inquiry submission flow unchanged.",
+      "reqIds": [
+        "REQ-102"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-official-login-flow-to-persist-the-entered-user-id-in-addition-to-the-existing-caffeineadmintoken-admin-secret-token-2024-in-sessionstorage-for-the-current-tab-session-and-keep-it-in-sync-with-the-existing-same-tab-auth-change-mechanism",
+      "title": "Update the Official Login flow to persist the entered `user_id` (in addition to the existing `caffeineAdminToken` = `admin-secret-token-2024`) in sessionStorage for the current tab session, and keep it in sync with the existing same-tab auth change mechanism.",
+      "reqIds": [
+        "REQ-103"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-admin-session-initialization-the-frontend-code-path-that-currently-calls-initializeaccesscontrolwithsecret-admintoken-to-also-send-the-stored-official-user-id-to-the-backend-as-part-of-the-initialization-request-so-the-backend-can-apply-the-super-admin-bypass-for-k107172621",
+      "title": "Update admin-session initialization (the frontend code path that currently calls `_initializeAccessControlWithSecret(adminToken)`) to also send the stored official `user_id` to the backend as part of the initialization request, so the backend can apply the Super Admin bypass for `K107172621`.",
+      "reqIds": [
+        "REQ-104"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-the-admin-dashboard-successfully-initializes-and-loads-inquiries-immediately-after-official-login-using-the-new-user-id-token-initialization-flow-and-that-failures-remain-user-visible-in-english-no-blank-states-or-infinite-spinners",
+      "title": "Ensure the admin dashboard successfully initializes and loads inquiries immediately after Official Login using the new user_id+token initialization flow, and that failures remain user-visible in English (no blank states or infinite spinners).",
+      "reqIds": [
+        "REQ-106"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-and-publish-a-new-deployment-that-applies-the-backend-fixes-to-both-preview-and-production-environments-then-verify-the-backend-canister-is-running-and-the-admin-dashboard-no-longer-shows-the-admin-session-initialization-failed-state-caused-by-replica-reject-code-5-canister-stopped-for-canister-id-wxmyz-dyaaa-aaaa-aaqcq-cai",
+      "title": "Create and publish a new deployment that applies the backend fixes to BOTH Preview and Production environments, then verify the backend canister is RUNNING and the admin dashboard no longer shows the “Admin Session Initialization Failed” state caused by replica reject code 5 (Canister stopped) for canister id wxmyz-dyaaa-aaaa-aaqcq-cai.",
+      "reqIds": [
+        "REQ-109"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-frontend-official-login-admin-actor-initialization-flow-to-match-the-simplified-backend-bypass-ensure-the-admin-initialization-call-uses-the-stored-official-user-id-and-does-not-require-an-admin-secret-token-for-user-id-k107172621-ensure-the-admin-dashboard-loads-inquiries-immediately-after-login-without-showing-the-admin-session-initialization-failed-state-for-the-bypassed-user",
+      "title": "Update the frontend Official Login + admin-actor initialization flow to match the simplified backend bypass: ensure the admin initialization call uses the stored official user_id and does not require an admin secret token for user_id \"K107172621\"; ensure the /admin dashboard loads inquiries immediately after login without showing the \"Admin Session Initialization Failed\" state for the bypassed user.",
+      "reqIds": [
+        "REQ-112"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-the-deployment-process-includes-an-explicit-post-deploy-validation-that-the-backend-canister-is-in-running-state-for-both-preview-and-production-and-document-the-manual-start-steps-as-the-recovery-action-when-it-is-stopped",
+      "title": "Ensure the deployment process includes an explicit post-deploy validation that the backend canister is in RUNNING state for both Preview and Production, and document the manual start steps as the recovery action when it is STOPPED.",
+      "reqIds": [
+        "REQ-113"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-build-and-deploy-the-updated-backend-frontend-to-both-preview-and-production-environments-using-the-simplified-bypass-approach-then-perform-the-minimal-critical-path-validation-homepage-loads-submit-a-test-inquiry-official-login-k107172621-karauli-34-redirects-to-admin-and-the-inquiry-appears-and-can-be-marked-read-unread-and-deleted",
+      "title": "Build and deploy the updated backend+frontend to BOTH Preview and Production environments using the simplified bypass approach, then perform the minimal critical-path validation: homepage loads, submit a test inquiry, Official Login (K107172621 / Karauli#34) redirects to /admin, and the inquiry appears and can be marked read/unread and deleted.",
+      "reqIds": [
+        "REQ-114"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-produce-a-fresh-build-and-deployment-ignore-old-build-artifacts-that-includes-these-backend-changes-publish-to-both-preview-and-production-and-validate-using-the-repository-checklists-backend-canister-status-running-official-login-admin-inquiry-visibility-and-actions",
+      "title": "Produce a fresh build and deployment (ignore old build artifacts) that includes these backend changes, publish to both Preview and Production, and validate using the repository checklists (backend canister status RUNNING + Official Login → `/admin` inquiry visibility and actions).",
+      "reqIds": [
+        "REQ-120"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-the-frontend-admin-initialization-timeout-and-loading-hang-by-ensuring-the-admin-initialization-call-returns-a-full-correctly-shaped-user-session-object-not-just-a-boolean-string-that-the-frontend-can-consume-without-waiting-indefinitely-update-the-frontend-admin-actor-initialization-code-to-use-this-returned-object-and-proceed-to-admin-verification-immediately",
+      "title": "Fix the frontend/admin initialization timeout and loading hang by ensuring the admin initialization call returns a full, correctly shaped user/session object (not just a boolean/string) that the frontend can consume without waiting indefinitely; update the frontend admin-actor initialization code to use this returned object and proceed to admin verification immediately.",
+      "reqIds": [
+        "REQ-134"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-backend-admin-bypass-initialization-for-official-user-id-k107172621-so-it-returns-a-full-user-session-object-not-only-a-role-flag-in-the-exact-shape-required-by-the-frontend-role-admin-id-k107172621-name-owner-email-email-may-be-empty-optional-so-the-admin-page-does-not-get-stuck-on-initializing-admin-session",
+      "title": "Update the backend admin-bypass initialization for official user ID \"K107172621\" so it returns a full user/session object (not only a role/flag) in the exact shape required by the frontend: { role: \"admin\", id: \"K107172621\", name: \"Owner\", email: \"...\" } (email may be empty/optional), so the Admin Page does not get stuck on \"Initializing Admin Session\".",
+      "reqIds": [
+        "REQ-136"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-debug-fallback-so-that-when-the-admin-inquiry-dataset-is-empty-the-admin-dashboard-still-shows-at-least-one-clearly-labeled-demo-inquiry-item-returned-through-the-same-inquiry-list-pipeline-so-the-operator-can-confirm-the-list-ui-is-working-all-user-facing-text-must-be-in-english",
+      "title": "Add a debug fallback so that when the admin inquiry dataset is empty, the Admin Dashboard still shows at least one clearly-labeled demo inquiry item returned through the same inquiry list pipeline (so the operator can confirm the list UI is working). All user-facing text must be in English.",
+      "reqIds": [
+        "REQ-138"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-deploy-this-hotfix-to-the-production-live-environment-and-verify-the-critical-path-end-to-end-backend-canister-is-running-after-deploy-public-inquiry-submission-succeeds-official-login-k107172621-karauli-34-navigates-to-admin-admin-session-initializes-without-hanging-and-inquiries-real-or-demo-fallback-are-visible",
+      "title": "Deploy this hotfix to the Production (Live) environment and verify the critical path end-to-end: backend canister is RUNNING after deploy, public inquiry submission succeeds, Official Login (\"K107172621\" / \"Karauli#34\") navigates to /admin, admin session initializes without hanging, and inquiries (real or demo fallback) are visible.",
+      "reqIds": [
+        "REQ-139"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-frontend-admin-session-initialization-flow-so-it-no-longer-waits-for-any-legacy-token-handshake-and-instead-treats-any-valid-positive-backend-session-response-as-success-stop-the-loading-spinner-immediately-and-allow-the-admin-dashboard-to-render-and-navigate-to-admin-where-applicable",
+      "title": "Update the frontend admin-session initialization flow so it no longer waits for any legacy token-handshake and instead treats any valid/positive backend session response as success: stop the loading spinner immediately and allow the Admin Dashboard to render (and navigate to /admin where applicable).",
+      "reqIds": [
+        "REQ-140"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-remove-any-client-side-gating-that-blocks-admin-initialization-or-admin-queries-based-on-the-presence-absence-of-an-admin-token-e-g-patterns-like-if-token-return-error-and-ensure-the-admin-session-relies-on-the-stored-official-user-id-sessionstorage-key-officialuserid-plus-the-backend-s-returned-session-object-for-authorization-state",
+      "title": "Remove any client-side gating that blocks admin initialization or admin queries based on the presence/absence of an admin token (e.g., patterns like `if (!token) return error`), and ensure the admin session relies on the stored official user ID (sessionStorage key `officialUserId`) plus the backend’s returned session object for authorization state.",
+      "reqIds": [
+        "REQ-141"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-redeploy-the-updated-frontend-assets-and-run-the-repository-s-documented-production-smoke-test-steps-relevant-to-official-login-admin-initialization-and-inquiry-visibility-to-confirm-the-hotfix-resolves-the-spinner-timeout-issue-shown-in-the-uploaded-screenshot",
+      "title": "Redeploy the updated frontend assets and run the repository’s documented production smoke test steps relevant to Official Login → `/admin` initialization and inquiry visibility to confirm the hotfix resolves the spinner/timeout issue shown in the uploaded screenshot.",
+      "reqIds": [
+        "REQ-143"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -877,6 +1005,266 @@
       "summary": "Ensure the backend exposes a query method `isCallerAdmin()` that returns whether the current caller is authorized as admin, and that its result reflects the updated per-caller admin authorization state granted by `_initializeAccessControlWithSecret`.",
       "reqIds": [
         "REQ-99"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-51",
+      "summary": "Update backend admin authorization so that calling `_initializeAccessControlWithSecret(\"admin-secret-token-2024\")` deterministically authorizes the *current caller principal* as an admin for the current session, instead of relying on any global/first-admin-only assignment logic that can cause: “Unauthorized: Only admins can perform this action”.",
+      "reqIds": [
+        "REQ-100"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-52",
+      "summary": "Ensure the backend exposes `isCallerAdmin()` behavior that accurately reflects the per-caller admin authorization granted by `_initializeAccessControlWithSecret(...)`, so the frontend admin-actor verification step can succeed immediately after Official Login.",
+      "reqIds": [
+        "REQ-101"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-53",
+      "summary": "Implement a temporary 'Super Admin Bypass' for Official Login: update frontend to send `user_id` along with the existing `admin-secret-token-2024` to the backend during the Official Login/admin initialization call; backend must, upon receiving `user_id == K107172621` (and password verified on frontend as today), bypass role-based verification and hardcode session.role='admin' with full access for subsequent admin APIs, while keeping strict role checks for all other users.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-56",
+      "summary": "Extend the Motoko backend to accept the official `user_id` during admin access-control initialization and apply a Super Admin bypass: if `received_user_id == \"K107172621\"`, set the caller’s session role to admin immediately (no additional conditions/role checks). For all other user_ids, keep the existing strict authorization behavior unchanged.",
+      "reqIds": [
+        "REQ-105"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-57",
+      "summary": "Restore the backend “Super Admin Bypass” for Official Login by re-introducing backend-side logic that grants admin privileges when the initialization request includes official user_id \"K107172621\" (case-sensitive) along with the admin secret token, so that admin-gated APIs (getAllInquiries, setInquiryReadStatus, deleteInquiry) succeed for that user immediately after login.",
+      "reqIds": [
+        "REQ-107"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-58",
+      "summary": "Implement a backend code-level hardening to prevent deploy/upgrade from leaving the backend canister in a broken state that results in replica rejection errors like \"Canister ... is stopped\" during admin initialization, by ensuring upgrade/initialization paths do not trap and by adding a minimal, non-admin health endpoint that can be called to confirm the canister is responsive after deployment.",
+      "reqIds": [
+        "REQ-108"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-59",
+      "summary": "Simplify backend fix: remove heartbeat self-recovery; implement simple admin bypass (IF user_id == \"K107172621\" THEN role=\"admin\") with NO token requirement for that ID; ensure canister is started/running immediately after deploy for both Preview and Production.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-60",
+      "summary": "Remove any dependency on heartbeat-based self-recovery for canister availability; do not add heartbeat logic as part of this fix.",
+      "reqIds": [
+        "REQ-110"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-61",
+      "summary": "Simplify backend admin authorization by restoring a code-level admin bypass based only on official user_id: if the initialization request contains user_id exactly \"K107172621\" then the caller must be treated as admin for admin-gated APIs; do not require any secret token for this user_id and do not call any privileged role-assignment helper (e.g., avoid flows that produce \"Only admins can assign user roles\").",
+      "reqIds": [
+        "REQ-111"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-62",
+      "summary": "Perform a fresh build & deploy (ignore old build artifacts) after implementing the code-level fixes: (1) ensure backend canister is RUNNING immediately after deploy/upgrade via correct post_upgrade behavior, and (2) re-apply/strengthen the Super Admin bypass for user_id K107172621 with no token requirement.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-63",
+      "summary": "Harden the backend upgrade lifecycle so deploy/upgrade does not leave the backend canister in a broken state: add proper `system preupgrade` and `system postupgrade` hooks in `backend/main.mo` that never trap, complete quickly, and restore all required in-memory state deterministically after an upgrade.",
+      "reqIds": [
+        "REQ-115"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-64",
+      "summary": "Persist inquiry storage across upgrades by moving the inquiry map and `nextId` into upgrade-safe stable storage (serialize in `preupgrade`, restore in `postupgrade`) so previously submitted inquiries remain available after deploy/upgrade.",
+      "reqIds": [
+        "REQ-116"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-65",
+      "summary": "Re-implement and strengthen the Super Admin Bypass for the official user ID exactly `K107172621` in `backend/main.mo`: when the backend receives an initialization request indicating `userId == \"K107172621\"`, it must grant admin authorization to the current caller without requiring any secret token for that user ID, and without using any privileged role-assignment path that can fail for non-admin callers.",
+      "reqIds": [
+        "REQ-117"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-66",
+      "summary": "Add/ensure a backend query method `isCallerAdmin()` that returns whether the current caller is authorized for admin operations under the updated per-caller authorization state (including the `K107172621` bypass).",
+      "reqIds": [
+        "REQ-118"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-67",
+      "summary": "Update backend admin authorization checks to be per-caller and non-trapping for non-admins: non-admin callers must be treated as non-admin/guest for authorization decisions (returning clear English Unauthorized traps only when an admin-only API is invoked), and must never cause loops or upgrade failures.",
+      "reqIds": [
+        "REQ-119"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-68",
+      "summary": "Update backend admin-authorization so that the official user ID is treated strictly as a Text string and grants admin privileges by exact string match: if `user_id_text == \"K107172621\"` then treat the caller as ADMIN (bypass) without using any principal-mapping logic.",
+      "reqIds": [
+        "REQ-121"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-69",
+      "summary": "Ensure the backend runs the official-ID bypass logic on every admin-session initialization call (not only in `postupgrade` or a one-time setup), so that each login/initialization immediately recognizes the official user as admin.",
+      "reqIds": [
+        "REQ-122"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-70",
+      "summary": "Fully bypass/ignore the token/secret mechanism for the official user ID \"K107172621\": if the user ID matches, the backend must grant admin privileges even if the token is missing, empty, or incorrect.",
+      "reqIds": [
+        "REQ-123"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-71",
+      "summary": "Remove/avoid any backend code path during initialization that attempts privileged role-assignment guarded by an admin check (the path that triggers: \"Unauthorized: Only admins can assign user roles\"). For the official user ID bypass, implement authorization via direct state mutation in the backend’s own bypass/session state so initialization cannot fail due to role-assignment permission checks.",
+      "reqIds": [
+        "REQ-124"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-72",
+      "summary": "Align frontend admin-session initialization with the simplified backend bypass by ensuring the admin initialization call sends only the stored official `userId` (Text) and does not depend on any token value for userId \"K107172621\"; keep user-facing error messages in English.",
+      "reqIds": [
+        "REQ-125"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-73",
+      "summary": "Perform a fresh build and deploy the updated application to BOTH Preview and Production (Live), then validate the critical path: backend canister is RUNNING, homepage loads, submit a test inquiry, Official Login with User ID \"K107172621\" and Password \"Karauli#34\" navigates to /admin, inquiries load (existing + new), and mark read/unread + delete work.",
+      "reqIds": [
+        "REQ-126"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-74",
+      "summary": "Update backend admin-authorization so that the official user ID is treated strictly as a Text string, and on every admin-session initialization check it grants admin privileges by exact string match: if user_id_text == \"K107172621\" then the caller must be treated as ADMIN_ROLE. Do not attempt to convert this user ID into a Principal or any other type.",
+      "reqIds": [
+        "REQ-127"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-75",
+      "summary": "For the official user ID \"K107172621\", fully bypass/ignore the token/secret mechanism during admin-session initialization: if the user ID matches, initialization must succeed and grant admin access even when the token is missing, empty, or incorrect.",
+      "reqIds": [
+        "REQ-128"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-76",
+      "summary": "Remove/avoid any backend initialization code path that uses role-assignment helpers that require existing admin privileges (e.g., do not call AccessControl.assignRole / assign_role()). For the \"K107172621\" bypass, implement authorization via direct backend state mutation (e.g., directly marking the caller as admin in the bypass/session state) so initialization cannot fail with \"Unauthorized: Only admins can assign user roles\".",
+      "reqIds": [
+        "REQ-129"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-77",
+      "summary": "Ensure admin authorization checks are effective for every admin API call by relying on the per-caller bypass/session state established by the official initialization flow (so that, after each login/init, the system immediately recognizes the official user).",
+      "reqIds": [
+        "REQ-130"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-78",
+      "summary": "Produce a fresh build artifact and deploy the updated backend+frontend to BOTH Preview and Production (Live). After deployment, verify the backend canister is RUNNING and validate the critical path using the repository checklists (Preview + Production): homepage loads, submit a test inquiry, Official Login (User ID \"K107172621\" / Password \"Karauli#34\") redirects to /admin, inquiries load (existing + new), and mark read/unread + delete work.",
+      "reqIds": [
+        "REQ-131"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-79",
+      "summary": "Fix Official Login timeout by ensuring the backend bypass for user_id \"K107172621\" returns a full default/dummy User/Profile JSON object in the exact format the frontend login() expects (not just a role/string), so the UI doesn’t hang on loading.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-80",
+      "summary": "Fix backend data persistence so inquiry data survives canister upgrades by using true Motoko stable storage for inquiry records and nextId, and restoring in-memory state deterministically on upgrade.",
+      "reqIds": [
+        "REQ-132"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-81",
+      "summary": "Keep backend authorization logic lightweight and deterministic: in admin-session initialization, perform the exact string match check for userId == \"K107172621\" as the very first condition, immediately grant admin access for the caller, and return immediately without invoking any heavier role/permission flows.",
+      "reqIds": [
+        "REQ-133"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-83",
+      "summary": "Ensure the Admin Dashboard does not show an incorrect empty state (“No Inquiries Yet”) due to storage loss after deploy: verify that inquiry submission writes to the persisted store and that getAllInquiries reads from the restored in-memory store after upgrade; document that older data may be missing if it cannot be recovered.",
+      "reqIds": [
+        "REQ-135"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-84",
+      "summary": "Add a debug/fallback behavior for /admin inquiries: if the inquiry store is empty, show at least one clearly-labeled “Demo Inquiry” so the operator can confirm the list UI is working.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-86",
+      "summary": "Fix backend persistence so inquiry submission and admin retrieval are upgrade-safe by storing the inquiry dataset and nextId in true Motoko stable storage (stable variables) and restoring in-memory state deterministically after upgrade, ensuring submitInquiry writes to the persisted store and getAllInquiries reads from the restored store.",
+      "reqIds": [
+        "REQ-137"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-87",
+      "summary": "High-priority frontend hotfix: update login()/initializeSession() to stop waiting for legacy token-handshake, remove client-side `if (!token) ...` gating, trust the backend’s positive JSON user/session response, immediately stop the spinner, and force-redirect to /admin; redeploy updated frontend assets.",
+      "reqIds": [],
+      "status": "in_progress"
+    },
+    {
+      "id": "AR-90",
+      "summary": "Ensure that after a successful Official Login (User ID `K107172621`, Password `Karauli#34`), the app immediately navigates to `/admin` and the admin session initialization begins deterministically; once initialized, inquiries fetch proceeds without additional manual clicks.",
+      "reqIds": [
+        "REQ-142"
       ],
       "status": "pending"
     }

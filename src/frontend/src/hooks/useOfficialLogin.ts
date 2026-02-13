@@ -1,16 +1,12 @@
 import { useState, useEffect } from 'react';
-import { storeSessionParameter, clearSessionParameter, getSessionParameter } from '../utils/urlParams';
+import { storeSessionParameter, clearSessionParameter } from '../utils/urlParams';
 
 const SESSION_KEY = 'official_login_session';
-const ADMIN_TOKEN_KEY = 'caffeineAdminToken';
+const USER_ID_KEY = 'officialUserId';
 const CREDENTIALS = {
   userId: 'K107172621',
   password: 'Karauli#34',
 };
-
-// Hardcoded admin token for Official Login
-// This matches the backend ADMIN_SECRET
-const ADMIN_SECRET_TOKEN = 'admin-secret-token-2024';
 
 export function useOfficialLogin() {
   const [isOfficiallyLoggedIn, setIsOfficiallyLoggedIn] = useState<boolean>(() => {
@@ -38,15 +34,14 @@ export function useOfficialLogin() {
 
   const login = (userId: string, password: string): boolean => {
     if (userId === CREDENTIALS.userId && password === CREDENTIALS.password) {
-      // CRITICAL: Store token FIRST, then set session flag
-      // This ensures downstream hooks see the token immediately
-      storeSessionParameter(ADMIN_TOKEN_KEY, ADMIN_SECRET_TOKEN);
+      // Store user_id and set session flag (no token needed for bypass)
+      sessionStorage.setItem(USER_ID_KEY, userId);
       sessionStorage.setItem(SESSION_KEY, 'true');
       
       // Update state
       setIsOfficiallyLoggedIn(true);
       
-      // Dispatch custom event for same-tab notification AFTER both storage operations
+      // Dispatch custom event for same-tab notification AFTER all storage operations
       // Use setTimeout to ensure storage writes complete before event fires
       setTimeout(() => {
         window.dispatchEvent(new CustomEvent('officialLoginChange', { detail: { loggedIn: true } }));
@@ -59,7 +54,7 @@ export function useOfficialLogin() {
 
   const logout = () => {
     sessionStorage.removeItem(SESSION_KEY);
-    clearSessionParameter(ADMIN_TOKEN_KEY);
+    sessionStorage.removeItem(USER_ID_KEY);
     setIsOfficiallyLoggedIn(false);
     
     // Dispatch custom event for same-tab notification

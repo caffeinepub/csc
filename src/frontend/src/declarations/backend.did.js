@@ -31,6 +31,20 @@ export const Inquiry = IDL.Record({
   'phoneNumber' : IDL.Text,
 });
 export const UserProfile = IDL.Record({ 'name' : IDL.Text });
+export const UserEntity = IDL.Record({
+  'id' : IDL.Text,
+  'modifiedAt' : IDL.Opt(Time),
+  'name' : IDL.Text,
+  'createdAt' : Time,
+  'role' : IDL.Text,
+  'email' : IDL.Opt(IDL.Text),
+});
+export const SessionEntity = IDL.Record({
+  'id' : IDL.Text,
+  'modifiedAt' : IDL.Opt(Time),
+  'createdAt' : Time,
+  'user' : UserEntity,
+});
 
 export const idlService = IDL.Service({
   '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
@@ -45,6 +59,9 @@ export const idlService = IDL.Service({
       [IDL.Opt(UserProfile)],
       ['query'],
     ),
+  'initializeAdmin' : IDL.Func([IDL.Text], [IDL.Opt(SessionEntity)], []),
+  'isAdminCall' : IDL.Func([], [IDL.Bool], ['query']),
+  'isAuthorizedAdminQuery' : IDL.Func([], [IDL.Bool], ['query']),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
   'setInquiryReadStatus' : IDL.Func([IDL.Nat, IDL.Bool], [], []),
@@ -88,6 +105,20 @@ export const idlFactory = ({ IDL }) => {
     'phoneNumber' : IDL.Text,
   });
   const UserProfile = IDL.Record({ 'name' : IDL.Text });
+  const UserEntity = IDL.Record({
+    'id' : IDL.Text,
+    'modifiedAt' : IDL.Opt(Time),
+    'name' : IDL.Text,
+    'createdAt' : Time,
+    'role' : IDL.Text,
+    'email' : IDL.Opt(IDL.Text),
+  });
+  const SessionEntity = IDL.Record({
+    'id' : IDL.Text,
+    'modifiedAt' : IDL.Opt(Time),
+    'createdAt' : Time,
+    'user' : UserEntity,
+  });
   
   return IDL.Service({
     '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
@@ -102,6 +133,9 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Opt(UserProfile)],
         ['query'],
       ),
+    'initializeAdmin' : IDL.Func([IDL.Text], [IDL.Opt(SessionEntity)], []),
+    'isAdminCall' : IDL.Func([], [IDL.Bool], ['query']),
+    'isAuthorizedAdminQuery' : IDL.Func([], [IDL.Bool], ['query']),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
     'setInquiryReadStatus' : IDL.Func([IDL.Nat, IDL.Bool], [], []),

@@ -9,6 +9,7 @@ export interface ReplicaRejectionDetails {
   rejectCode?: number;
   requestId?: string;
   isCanisterStopped: boolean;
+  healthCheckFailed?: boolean;
 }
 
 /**
@@ -44,39 +45,21 @@ export function getErrorMessage(error: unknown): string {
 }
 
 /**
- * Detects if an error is the "Admin secret already used to initialize the system" error.
- * This is a recoverable error that should trigger Retry, not Logout.
- */
-export function isAdminSecretAlreadyUsedError(error: unknown): boolean {
-  const message = getErrorMessage(error).toLowerCase();
-  return message.includes('admin secret already used');
-}
-
-/**
- * Detects if an error is authorization-related (invalid credentials, wrong secret, etc.)
+ * Detects if an error is authorization-related (invalid credentials, wrong user ID, etc.)
  * These errors should trigger Logout as the recovery action.
- * 
- * IMPORTANT: Does NOT include "admin secret already used" which is a recoverable initialization error.
  */
 export function isAuthorizationError(error: unknown): boolean {
-  // First check if it's the "already used" error - if so, it's NOT an auth error
-  if (isAdminSecretAlreadyUsedError(error)) {
-    return false;
-  }
-
   const message = getErrorMessage(error).toLowerCase();
   return (
     message.includes('unauthorized') ||
     message.includes('only admins') ||
-    message.includes('invalid secret') ||
-    message.includes('invalid token') ||
+    message.includes('invalid admin user id') ||
     message.includes('not authorized') ||
     message.includes('permission denied') ||
     message.includes('access denied') ||
-    message.includes('system has not been initialized') ||
-    message.includes('only official admin') ||
     message.includes('does not have admin privileges') ||
-    message.includes('admin role may have been assigned')
+    message.includes('admin role may have been assigned') ||
+    message.includes('invalid super admin')
   );
 }
 
@@ -106,7 +89,6 @@ export function isReplicaRejectionError(error: unknown): boolean {
  */
 export function isRecoverableError(error: unknown): boolean {
   return (
-    isAdminSecretAlreadyUsedError(error) ||
     isReplicaRejectionError(error) ||
     getErrorMessage(error).toLowerCase().includes('timed out')
   );
@@ -131,6 +113,9 @@ export function extractReplicaRejectionDetails(error: unknown): ReplicaRejection
     }
   }
 
+  // Check if this was a health check failure
+  const healthCheckFailed = error && typeof error === 'object' && 'healthCheckFailed' in error;
+
   // Extract reject code (e.g., "Reject code: 5" or "IC0508" or "reject_code=5")
   let rejectCode: number | undefined;
   const rejectCodeMatch = message.match(/reject[_ ]code[:\s=]+(\d+)/i);
@@ -143,82 +128,63 @@ export function extractReplicaRejectionDetails(error: unknown): ReplicaRejection
     }
   }
 
-  // Extract request ID (e.g., "Request ID: 6e0df47e-..." or "request_id=...")
+  // Extract request ID (e.g., "Request ID: abc123" or "request_id=abc123")
   let requestId: string | undefined;
   const requestIdMatch = message.match(/request[_ ]id[:\s=]+([a-f0-9-]+)/i);
   if (requestIdMatch) {
     requestId = requestIdMatch[1];
   }
 
-  // Extract canister ID and stopped reason
-  const canisterStoppedMatch = message.match(/canister\s+([a-z0-9-]+)\s+(is\s+)?(stopped|stopping)/i);
-  const isCanisterStopped = !!canisterStoppedMatch;
-
-  // Build a clear reason message
-  let reason: string;
-  if (canisterStoppedMatch) {
-    const canisterId = canisterStoppedMatch[1];
-    const state = canisterStoppedMatch[3]; // "stopped" or "stopping"
-    reason = `Backend service is ${state} (Canister ${canisterId})`;
-  } else if (message.toLowerCase().includes('canister') && message.toLowerCase().includes('unavailable')) {
-    reason = 'Backend service is currently unavailable';
-  } else if (message.toLowerCase().includes('destination invalid')) {
-    reason = 'Backend service destination is invalid or unreachable';
-  } else if (message.toLowerCase().includes('replica returned a rejection error')) {
-    reason = 'Backend service rejected the request';
-  } else if (message.toLowerCase().includes('replica') && message.toLowerCase().includes('reject')) {
-    reason = 'Backend replica rejected the request';
-  } else {
-    reason = 'Backend service error';
-  }
+  // Detect if canister is stopped
+  const isCanisterStopped = message.toLowerCase().includes('canister') && (
+    message.toLowerCase().includes('stopped') ||
+    message.toLowerCase().includes('is stopping') ||
+    message.toLowerCase().includes('not running')
+  );
 
   return {
-    reason,
+    reason: message,
     rejectCode,
     requestId,
     isCanisterStopped,
+    healthCheckFailed: !!healthCheckFailed,
   };
 }
 
 /**
- * Formats replica rejection details into a user-friendly, actionable message
- * that includes reject code and request ID when available.
+ * Formats a user-friendly error message for admin initialization failures.
+ * Includes replica rejection details inline in the primary message for better visibility.
  */
-export function formatReplicaRejectionMessage(details: ReplicaRejectionDetails): string {
-  let message = details.reason;
-  
-  if (details.isCanisterStopped) {
-    message += '. The backend canister needs to be started.';
-  } else {
-    message += '. The service may be temporarily unavailable.';
+export function formatAdminInitErrorMessage(error: unknown): string {
+  const baseMessage = getErrorMessage(error);
+  const replicaDetails = extractReplicaRejectionDetails(error);
+
+  if (!replicaDetails) {
+    return baseMessage;
   }
 
-  // Add actionable guidance
-  message += ' Please wait a moment and click Retry to reconnect.';
+  // Build enriched message with replica details inline
+  let enrichedMessage = baseMessage;
 
-  // Append technical details inline for transparency
-  const technicalParts: string[] = [];
-  if (details.rejectCode !== undefined) {
-    technicalParts.push(`Reject Code: ${details.rejectCode}`);
-  }
-  if (details.requestId) {
-    technicalParts.push(`Request ID: ${details.requestId}`);
+  // Add health check failure indicator if present
+  if (replicaDetails.healthCheckFailed) {
+    enrichedMessage += '\n\nHealth check failed - backend service is not responding.';
   }
 
-  if (technicalParts.length > 0) {
-    message += ` (${technicalParts.join(', ')})`;
+  // Add reject code if present
+  if (replicaDetails.rejectCode !== undefined) {
+    enrichedMessage += `\n\nReject Code: ${replicaDetails.rejectCode}`;
   }
 
-  return message;
-}
-
-/**
- * Normalizes any thrown value into an Error object
- */
-export function normalizeError(error: unknown): Error {
-  if (error instanceof Error) {
-    return error;
+  // Add request ID if present
+  if (replicaDetails.requestId) {
+    enrichedMessage += `\nRequest ID: ${replicaDetails.requestId}`;
   }
-  
-  return new Error(getErrorMessage(error));
+
+  // Add canister stopped indicator
+  if (replicaDetails.isCanisterStopped) {
+    enrichedMessage += '\n\nThe backend canister appears to be stopped. Please start the canister and try again.';
+  }
+
+  return enrichedMessage;
 }

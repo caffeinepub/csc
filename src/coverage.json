@@ -1,28 +1,62 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-13T11:47:44.452Z",
+  "generatedAt": "2026-02-13T15:39:51.414Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 2,
-    "implemented": 0,
+    "total": 4,
+    "implemented": 3,
     "items": [
       {
-        "id": "REQ-98",
-        "summary": "Update backend admin-session bootstrapping so that calling `_initializeAccessControlWithSecret(secret)` with the correct secret `admin-secret-token-2024` ALWAYS grants admin privileges to the current caller (the principal making the call), regardless of whether another principal was previously granted admin.",
-        "status": "unknown",
-        "plannedFiles": [],
+        "id": "REQ-140",
+        "summary": "Update the frontend admin-session initialization flow so it no longer waits for any legacy token-handshake and instead treats any valid/positive backend session response as success: stop the loading spinner immediately and allow the Admin Dashboard to render (and navigate to /admin where applicable).",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/hooks/useAdminActor.ts",
+          "frontend/src/pages/AdminPage.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/hooks/useAdminActor.ts",
+          "frontend/src/pages/AdminPage.tsx"
+        ]
+      },
+      {
+        "id": "REQ-141",
+        "summary": "Remove any client-side gating that blocks admin initialization or admin queries based on the presence/absence of an admin token (e.g., patterns like `if (!token) return error`), and ensure the admin session relies on the stored official user ID (sessionStorage key `officialUserId`) plus the backend’s returned session object for authorization state.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/hooks/useAdminActor.ts",
+          "frontend/src/hooks/useAdminInquiries.ts"
+        ],
+        "matchedFiles": [
+          "frontend/src/hooks/useAdminActor.ts"
+        ]
+      },
+      {
+        "id": "REQ-142",
+        "summary": "Ensure that after a successful Official Login (User ID `K107172621`, Password `Karauli#34`), the app immediately navigates to `/admin` and the admin session initialization begins deterministically; once initialized, inquiries fetch proceeds without additional manual clicks.",
+        "status": "missing",
+        "plannedFiles": [
+          "frontend/src/App.tsx",
+          "frontend/src/components/sections/HeroSection.tsx"
+        ],
         "matchedFiles": []
       },
       {
-        "id": "REQ-99",
-        "summary": "Ensure the backend exposes a query method `isCallerAdmin()` that returns whether the current caller is authorized as admin, and that its result reflects the updated per-caller admin authorization state granted by `_initializeAccessControlWithSecret`.",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
+        "id": "REQ-143",
+        "summary": "Redeploy the updated frontend assets and run the repository’s documented production smoke test steps relevant to Official Login → `/admin` initialization and inquiry visibility to confirm the hotfix resolves the spinner/timeout issue shown in the uploaded screenshot.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/PRODUCTION_SMOKE_TEST.md",
+          "frontend/PREVIEW_VALIDATION_CHECKLIST.md"
+        ],
+        "matchedFiles": [
+          "frontend/PRODUCTION_SMOKE_TEST.md",
+          "frontend/PREVIEW_VALIDATION_CHECKLIST.md"
+        ]
       }
     ]
   },
@@ -30,8 +64,12 @@
     "backend/main.mo",
     "build-request.json",
     "feature_evidence.json",
+    "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/backend.d.ts",
+    "frontend/PREVIEW_VALIDATION_CHECKLIST.md",
+    "frontend/PRODUCTION_SMOKE_TEST.md",
+    "frontend/src/hooks/useAdminActor.ts",
+    "frontend/src/pages/AdminPage.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

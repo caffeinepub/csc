@@ -1,51 +1,47 @@
 import { useInternetIdentity } from './useInternetIdentity';
-import { useOfficialAdminToken } from './useOfficialAdminToken';
+import { useOfficialUserId } from './useOfficialUserId';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { type backendInterface } from '../backend';
+import { type backendInterface, type SessionEntity } from '../backend';
 import { createActorWithConfig } from '../config';
 import { useEffect, useRef } from 'react';
-import { extractReplicaRejectionDetails, isAdminSecretAlreadyUsedError, isReplicaRejectionError } from '../utils/adminError';
+import { extractReplicaRejectionDetails, isReplicaRejectionError } from '../utils/adminError';
 
 /**
- * Wrapper actor hook specifically for admin operations.
- * Creates an actor (anonymous or Internet Identity-backed) and invokes
- * the backend access-control initialization with the admin secret token,
- * then explicitly verifies admin status before returning the actor.
- * 
+ * Admin actor hook for Super Admin bypass (K107172621).
+ * Creates an actor and calls initializeAdmin with ONLY the user ID (no token required).
+ * Trusts the backend session response immediately without additional verification.
+ * Includes health check preflight and bounded retry with exponential backoff.
  * Exposes explicit states: initializing, ready, and failed.
- * Provides deterministic retry that recreates the actor and re-runs initialization.
- * Includes initialization timeout to prevent indefinite hangs.
- * Treats "Admin secret already used" as expected and non-blocking (with auto-retry).
- * Implements bounded retry with exponential backoff for replica rejection errors.
- * Ensures actor is fully ready and verified as admin before downstream queries enable.
  */
 export function useAdminActor() {
   const { identity } = useInternetIdentity();
-  const adminToken = useOfficialAdminToken();
+  const userId = useOfficialUserId();
   const queryClient = useQueryClient();
-  const lastTokenRef = useRef<string | null>(null);
+  const lastUserIdRef = useRef<string | null>(null);
 
-  // Track token changes and invalidate actor when token changes
+  // Track userId changes and invalidate actor when it changes
   useEffect(() => {
-    if (adminToken !== lastTokenRef.current) {
-      lastTokenRef.current = adminToken;
+    const userIdChanged = userId !== lastUserIdRef.current;
+    
+    if (userIdChanged) {
+      lastUserIdRef.current = userId;
       
-      // If token changed (login/logout), invalidate the actor to force recreation
-      if (adminToken) {
+      // If userId changed (login/logout), invalidate the actor to force recreation
+      if (userId) {
         queryClient.invalidateQueries({ queryKey: ['adminActor'] });
       } else {
-        // Token cleared (logout) - remove all admin queries
+        // UserId cleared (logout) - remove all admin queries
         queryClient.removeQueries({ queryKey: ['adminActor'] });
         queryClient.removeQueries({ queryKey: ['adminInquiries'] });
       }
     }
-  }, [adminToken, queryClient]);
+  }, [userId, queryClient]);
 
   const actorQuery = useQuery<backendInterface>({
-    queryKey: ['adminActor', identity?.getPrincipal().toString(), adminToken],
+    queryKey: ['adminActor', identity?.getPrincipal().toString(), userId],
     queryFn: async () => {
-      if (!adminToken) {
-        throw new Error('Admin token not available. Please log in again.');
+      if (!userId) {
+        throw new Error('Official user ID is missing. Please log in again to restore your session.');
       }
 
       const isAuthenticated = !!identity;
@@ -74,59 +70,83 @@ export function useAdminActor() {
           actor = await createActorWithConfig(actorOptions);
         }
 
-        // Initialize access control with admin token
+        // PREFLIGHT: Check backend health to detect canister-stopped early
         try {
-          await actor._initializeAccessControlWithSecret(adminToken);
-          console.log('Admin access control initialized successfully');
-        } catch (error) {
-          console.error('Failed to initialize access control:', error);
+          console.log('Checking backend health before initialization...');
+          const healthStatus = await actor.getHealthStatus();
+          console.log('Backend health check passed:', healthStatus);
+        } catch (healthError) {
+          console.error('Backend health check failed:', healthError);
           
-          // Check if this is the "Admin secret already used" error - treat as recoverable
-          if (isAdminSecretAlreadyUsedError(error)) {
-            console.log('Admin secret already used - this is expected after first initialization. Proceeding with verification.');
-            // Don't throw - this is expected, continue to verification
-          } else {
-            // Enrich replica rejection errors with structured details
-            const replicaDetails = extractReplicaRejectionDetails(error);
-            if (replicaDetails) {
-              const enrichedError = error instanceof Error ? error : new Error(String(error));
-              (enrichedError as any).replicaDetails = replicaDetails;
-              throw enrichedError;
-            }
-
-            // Re-throw other errors as-is
-            throw error;
+          // Enrich replica rejection errors with structured details
+          const replicaDetails = extractReplicaRejectionDetails(healthError);
+          if (replicaDetails) {
+            const enrichedError = healthError instanceof Error ? healthError : new Error(String(healthError));
+            (enrichedError as any).replicaDetails = replicaDetails;
+            (enrichedError as any).healthCheckFailed = true;
+            throw enrichedError;
           }
+          
+          // Re-throw other health check errors
+          throw healthError;
         }
 
-        // CRITICAL: Explicitly verify admin status after initialization
-        // This prevents the infinite loop by catching non-admin callers early
+        // Initialize Super Admin access with ONLY user_id (no token required for K107172621)
+        let session: SessionEntity | null = null;
         try {
-          const isAdmin = await actor.isCallerAdmin();
-          if (!isAdmin) {
-            throw new Error('Unauthorized: Current session does not have admin privileges. The admin role may have been assigned to a different principal. Please contact the system administrator.');
-          }
-          console.log('Admin status verified successfully');
+          console.log('Initializing Super Admin bypass for user_id:', userId);
+          session = await actor.initializeAdmin(userId);
+          console.log('Super Admin initialization result:', session);
         } catch (error) {
-          console.error('Admin verification failed:', error);
+          console.error('Failed to initialize Super Admin access:', error);
+          
+          // Enrich replica rejection errors with structured details
+          const replicaDetails = extractReplicaRejectionDetails(error);
+          if (replicaDetails) {
+            const enrichedError = error instanceof Error ? error : new Error(String(error));
+            (enrichedError as any).replicaDetails = replicaDetails;
+            throw enrichedError;
+          }
+
+          // Re-throw other errors as-is
           throw error;
         }
 
-        // Return the verified admin actor
+        // Validate the session response structure
+        if (!session || typeof session !== 'object') {
+          throw new Error('Invalid session response from backend. Expected SessionEntity object with user details.');
+        }
+
+        // Validate that session has required fields
+        if (!session.user || typeof session.user !== 'object') {
+          throw new Error('Invalid session response: missing user object.');
+        }
+
+        // Check if user has admin role
+        if (session.user.role !== 'admin') {
+          throw new Error('Super Admin initialization failed. User ID does not have admin privileges.');
+        }
+
+        console.log('Super Admin session initialized successfully:', {
+          sessionId: session.id,
+          userId: session.user.id,
+          userName: session.user.name,
+          userRole: session.user.role,
+        });
+
+        // HOTFIX: Trust the backend session response immediately.
+        // The backend has already validated and returned a SessionEntity with role === 'admin'.
+        // No additional verification calls are needed - return the actor immediately.
+        console.log('Admin actor ready - trusting backend session response');
         return actor;
       })();
 
       // Race between initialization and timeout
       return Promise.race([initPromise, timeoutPromise]);
     },
-    enabled: !!adminToken,
+    enabled: !!userId,
     retry: (failureCount, error) => {
       // Auto-retry with bounded attempts for recoverable errors
-      if (isAdminSecretAlreadyUsedError(error)) {
-        // Retry once for "admin secret already used"
-        return failureCount < 1;
-      }
-      
       if (isReplicaRejectionError(error)) {
         // Retry up to 3 times for replica rejections (canister stopped, unavailable, etc.)
         return failureCount < 3;

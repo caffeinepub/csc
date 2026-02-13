@@ -8,13 +8,15 @@ import { isAuthorizationError } from '../utils/adminError';
  * React Query hooks for admin operations.
  * All hooks depend on the admin actor being ready and verified.
  * Includes limited self-healing mechanism for authorization errors.
+ * Adds demo inquiry fallback when the backend returns an empty list.
  */
 
 /**
  * Fetches all inquiries from the backend.
  * Automatically refetches on mount and reconnect.
  * Includes limited self-healing: if authorization error occurs despite ready state,
- * automatically reinitializes admin session and retries ONCE per page load.
+ * automatically reinitializes admin session and retries ONCE per query lifecycle.
+ * Shows a demo inquiry with clear English labeling when the list is empty.
  */
 export function useGetAllInquiries() {
   const { actor, isReady, isFetching: actorFetching, retry: retryAdminActor } = useAdminActor();
@@ -29,6 +31,25 @@ export function useGetAllInquiries() {
 
       try {
         const result = await actor.getAllInquiries();
+        
+        // Backend already returns a demo inquiry when empty, but we add frontend fallback
+        // in case backend behavior changes or for additional clarity
+        if (result.length === 0) {
+          const demoInquiry: Inquiry = {
+            id: BigInt(0),
+            timestamp: BigInt(Date.now() * 1000000), // Convert to nanoseconds
+            inquiryType: 'contact' as any,
+            name: 'Demo Inquiry',
+            phoneNumber: '1234567890',
+            email: 'demo@example.com',
+            message: 'This is a demo inquiry to demonstrate the system\'s functionality when no actual data exists.',
+            serviceCategory: 'Demo Category',
+            internal: false,
+            read: false,
+          };
+          return [demoInquiry];
+        }
+        
         return result;
       } catch (error) {
         // If we get an authorization error despite being in ready state,
@@ -56,6 +77,24 @@ export function useGetAllInquiries() {
               try {
                 const retryResult = await freshActor.getAllInquiries();
                 console.log('Self-healing successful - inquiries loaded after reinitialization');
+                
+                // Apply demo inquiry fallback to retry result as well
+                if (retryResult.length === 0) {
+                  const demoInquiry: Inquiry = {
+                    id: BigInt(0),
+                    timestamp: BigInt(Date.now() * 1000000),
+                    inquiryType: 'contact' as any,
+                    name: 'Demo Inquiry',
+                    phoneNumber: '1234567890',
+                    email: 'demo@example.com',
+                    message: 'This is a demo inquiry to demonstrate the system\'s functionality when no actual data exists.',
+                    serviceCategory: 'Demo Category',
+                    internal: false,
+                    read: false,
+                  };
+                  return [demoInquiry];
+                }
+                
                 return retryResult;
               } catch (retryError) {
                 console.error('Self-healing failed - authorization still invalid after retry');

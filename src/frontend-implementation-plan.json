@@ -1,6 +1,91 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Frontend plan: no changes required for backend-only admin bootstrapping fix",
-  "requirements": []
+  "title": "Frontend hotfix: admin session init unblocks immediately on backend session response",
+  "requirements": [
+    {
+      "id": "REQ-140",
+      "summary": "Stop the admin initialization spinner promptly by treating a valid backend SessionEntity response as success and not waiting on legacy/extra handshake steps.",
+      "acceptanceCriteria": [
+        "After Official Login succeeds, navigating to /admin does not remain on the \"Initializing Admin Session\" screen for ~30 seconds; the spinner stops promptly once the backend returns a valid SessionEntity user object.",
+        "The frontend considers the backend response successful when a correctly shaped session object is returned (e.g., session.user exists and session.user.role === \"admin\"), without requiring any legacy token-handshake state to complete.",
+        "No user-facing timeout occurs if the backend returns a successful session quickly; the UI proceeds to the dashboard view immediately."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useAdminActor.ts",
+          "operation": "modify",
+          "description": "Refactor admin-session initialization to complete as soon as initializeAdmin returns a valid SessionEntity with session.user.role === \"admin\"; remove/avoid any additional blocking steps (e.g., preflight/verification calls) from gating readiness so the spinner stops immediately on success."
+        },
+        {
+          "path": "frontend/src/pages/AdminPage.tsx",
+          "operation": "modify",
+          "description": "Ensure the /admin UI transitions out of the \"Initializing Admin Session\" state based solely on the updated useAdminActor readiness (no extra UI-side waiting), and proceeds directly into the normal dashboard/inquiries states once the actor is ready."
+        }
+      ]
+    },
+    {
+      "id": "REQ-141",
+      "summary": "Remove client-side token gating from admin initialization and admin queries; rely on officialUserId plus backend session response for authorization state.",
+      "acceptanceCriteria": [
+        "There is no code path in the Official Login → /admin initialization flow that fails solely because an admin token is missing.",
+        "Admin actor initialization remains enabled when `officialUserId` is present (as in current `useAdminActor` behavior) and does not require `caffeineAdminToken` for the K107172621 bypass flow.",
+        "If the backend returns a valid admin session object, the frontend does not override it with a local token-required error."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useAdminActor.ts",
+          "operation": "modify",
+          "description": "Remove any residual client-side checks that gate initialization based on token presence; ensure the only prerequisite for starting admin initialization is officialUserId, and that authorization state is derived from the backend session object (role/admin) rather than local token state."
+        },
+        {
+          "path": "frontend/src/hooks/useAdminInquiries.ts",
+          "operation": "modify",
+          "description": "Ensure admin inquiry fetching/mutations do not include any token-required gating paths (e.g., \"missing token\" early exits) and rely exclusively on the ready admin actor + backend authorization; keep existing public inquiry submission behavior unchanged."
+        }
+      ]
+    },
+    {
+      "id": "REQ-142",
+      "summary": "After successful Official Login, navigate to /admin immediately and start admin initialization deterministically so inquiries load without extra clicks.",
+      "acceptanceCriteria": [
+        "From the homepage Official Login dialog, upon successful credentials entry, the app navigates to `/admin` automatically.",
+        "On `/admin`, the admin actor initialization runs once prerequisites are present and transitions into the normal dashboard state without a long spinner/timeout when the backend is responsive.",
+        "If inquiries exist, they appear; if none exist, the dashboard shows the existing empty-state UI or the existing demo fallback (whichever is implemented), but not an initialization timeout screen."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Harden the /admin route guard to trust the persisted Official Login session state from sessionStorage during the immediate post-login navigation (prevent redirect loops caused by transient React state lag), so navigation to /admin is deterministic."
+        },
+        {
+          "path": "frontend/src/components/sections/HeroSection.tsx",
+          "operation": "modify",
+          "description": "Confirm the Official Login success handler continues to navigate to /admin immediately after a successful login, and adjust only if needed to avoid any race with the /admin guard (do not change public inquiry form UX)."
+        }
+      ]
+    },
+    {
+      "id": "REQ-143",
+      "summary": "Document the redeploy + production smoke test steps to validate the Official Login → /admin hotfix for the spinner/timeout issue.",
+      "acceptanceCriteria": [
+        "A new build is produced and deployed with the frontend changes.",
+        "In the deployed environment, Official Login → `/admin` no longer gets stuck on the \"Initializing Admin Session\" screen as shown in the screenshot.",
+        "The documented smoke test steps for Official Login and admin dashboard initialization complete without a timeout."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/PRODUCTION_SMOKE_TEST.md",
+          "operation": "modify",
+          "description": "Update/augment the documented production smoke test section for Official Login → /admin to explicitly include verifying that admin initialization completes promptly (no ~30s spinner/timeout) and that inquiries/empty-state render without manual retries."
+        },
+        {
+          "path": "frontend/PREVIEW_VALIDATION_CHECKLIST.md",
+          "operation": "modify",
+          "description": "Add a high-priority validation checklist item to verify Official Login → /admin initializes promptly by trusting the backend session response, and that inquiries visibility works without timeouts."
+        }
+      ]
+    }
+  ]
 }

@@ -1,30 +1,113 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-13T11:47:44.449Z",
-  "summary": "The diff does not implement the requested deterministic admin-secret bootstrapping or the `isCallerAdmin()` query. Admin-gated APIs now check `isAdminSafe(caller)` (role-based), but there is no `_initializeAccessControlWithSecret(\"admin-secret-token-2024\")` mechanism to grant admin to any caller, and no `isCallerAdmin()` endpoint.",
+  "generatedAt": "2026-02-13T15:39:51.409Z",
+  "summary": "The diff implements a more complex admin initialization flow (health preflight, retries, explicit error UI, and a 30s timeout) and adds extensive unrelated homepage/content changes (including Hindi copy) plus backend changes. Several requested hotfix requirements (remove timeout/spinner hang, trust backend session without token/handshake, and immediate /admin navigation after official login) are not clearly or fully satisfied based on the provided diff summary.",
   "missing_requirements": [
     {
-      "id": "REQ-98",
-      "requirement": "Update backend admin-session bootstrapping so that calling `_initializeAccessControlWithSecret(\"admin-secret-token-2024\")` ALWAYS grants admin privileges to the current caller (even if another principal was previously admin), while wrong secrets do not grant admin.",
-      "reason": "`backend/main.mo` contains no `_initializeAccessControlWithSecret` function and no code path that checks the fixed secret `admin-secret-token-2024` to grant per-caller admin privileges. Admin-gated APIs instead rely on `AccessControl.getUserRole` via `isAdminSafe(caller)`, but no secret-based elevation is present in the shown changes.",
+      "id": "REQ-140",
+      "requirement": "Stop waiting on any legacy token-handshake; treat a valid backend SessionEntity response as immediate success so the spinner stops promptly and no user-facing timeout occurs when backend responds quickly.",
+      "reason": "The updated admin actor hook explicitly introduces a 30-second initialization timeout with a user-facing timeout error, which conflicts with the requirement to avoid timeouts/hangs when the backend returns a successful session quickly. The diff also shows added preflight and retry logic, but does not provide clear evidence that legacy token-handshake waits were removed or that a returned session immediately transitions to ready state without additional gating.",
+      "evidence": [
+        "frontend/src/hooks/useAdminActor.ts (\"Create initialization timeout promise (30 seconds)\" / timeout error message)",
+        "frontend/src/pages/AdminPage.tsx (shows \"Initializing Admin Session\" screen driven by isAdminInitializing)"
+      ]
+    },
+    {
+      "id": "REQ-141",
+      "requirement": "Remove any client-side gating that blocks admin initialization or admin queries based on admin token presence/absence; rely on sessionStorage officialUserId plus backend session object.",
+      "reason": "While comments claim \"no token required\", the diff does not show removal of token-gating patterns elsewhere, and it adds new gating on presence of officialUserId that throws an error. There is insufficient evidence in the provided diff summary that all token-based gates were removed across the official login → /admin flow.",
+      "evidence": [
+        "frontend/src/hooks/useAdminActor.ts (throws error when officialUserId missing: \"Official user ID is missing...\")"
+      ]
+    },
+    {
+      "id": "REQ-142",
+      "requirement": "After successful Official Login, automatically navigate to /admin and deterministically begin initialization; inquiries fetch proceeds without extra manual clicks.",
+      "reason": "The diff summary does not include any concrete code change proving that the Official Login success path now triggers immediate navigation to `/admin`. AdminLoginPrompt mentions an optional redirect prop, but it is not evidence that the homepage login flow actually uses it. Inquiry auto-fetch without manual clicks is also not clearly demonstrated in the shown snippets.",
+      "evidence": [
+        "frontend-file-summaries.txt (\"AdminLoginPrompt... supports optional redirect after successful login\")",
+        "frontend/src/pages/AdminPage.tsx (admin page behavior shown, but not the login-success navigation trigger)"
+      ]
+    },
+    {
+      "id": "REQ-143",
+      "requirement": "Redeploy updated frontend assets and run documented production smoke tests for Official Login → /admin initialization and inquiry visibility.",
+      "reason": "The diff adds/updates checklists, but there is no evidence of an actual redeploy or executed smoke test results in the diff summary.",
+      "evidence": [
+        "frontend/PRODUCTION_SMOKE_TEST.md",
+        "frontend/PREVIEW_VALIDATION_CHECKLIST.md"
+      ]
+    }
+  ],
+  "hallucinated_features": [
+    {
+      "description": "Backend canister authorization/admin initialization changes (including stable storage changes and initializeAdmin returning a SessionEntity for OFFICIAL_ADMIN_USER_ID).",
+      "reason": "The BuildRequest is a frontend hotfix and explicitly lists backend authorization refactors as non-goals. The diff modifies backend/main.mo substantially.",
       "evidence": [
         "backend/main.mo"
       ]
     },
     {
-      "id": "REQ-99",
-      "requirement": "Expose a query method `isCallerAdmin()` that reflects per-caller admin authorization state granted by `_initializeAccessControlWithSecret`.",
-      "reason": "No `isCallerAdmin()` method is present in `backend/main.mo` in the diff.",
+      "description": "Added a 30-second admin session initialization timeout with a user-facing timeout error message.",
+      "reason": "REQ-140 explicitly requires no user-facing timeout when backend returns success quickly; adding an explicit 30s timeout and timeout UI is not requested and conflicts with the stated intent of removing the ~30s hang/timeout experience.",
       "evidence": [
-        "backend/main.mo"
+        "frontend/src/hooks/useAdminActor.ts (\"Admin session initialization timed out after 30 seconds...\")"
+      ]
+    },
+    {
+      "description": "Health-check preflight, bounded retry with exponential backoff, and detailed replica rejection error enrichment/UI for admin initialization.",
+      "reason": "These operational resiliency and error-detail features are not requested by REQ-140/141/142; they go beyond the specified hotfix scope.",
+      "evidence": [
+        "frontend/src/hooks/useAdminActor.ts (health check preflight, enriched errors, retry/backoff mentioned in header comment)",
+        "frontend/src/pages/AdminPage.tsx (explicit initializing/failed states and detailed error UI per file summary)"
+      ]
+    },
+    {
+      "description": "Large homepage/marketing content expansion (Mission/Vision, FAQs, redesigned services/why-choose-us sections) and new/updated branding components.",
+      "reason": "Non-goals include changing overall site marketing content/layout unrelated to /admin initialization hang. The diff summary indicates extensive unrelated UI/content changes.",
+      "evidence": [
+        "frontend-file-summaries.txt (App.tsx new sections; multiple sections/components updated; BrandMark; NavigationBar links)"
+      ]
+    },
+    {
+      "description": "Introduced/centralized Hindi business copy across site content.",
+      "reason": "Constraint requires all user-facing UI text in English. The diff summary explicitly mentions \"new Hindi business copy\".",
+      "evidence": [
+        "frontend-file-summaries.txt (frontend/src/content/siteContent.ts: \"all new Hindi business copy\")"
+      ]
+    },
+    {
+      "description": "Inquiry form behavior/implementation changes (controlled form, success feedback, reset behavior, mapping serviceCategories).",
+      "reason": "Constraint says not to change public inquiry submission behavior or inquiry form UX as part of this hotfix; the diff summary indicates changes to InquiryForm behavior.",
+      "evidence": [
+        "frontend-file-summaries.txt (frontend/src/components/InquiryForm.tsx description)"
+      ]
+    },
+    {
+      "description": "Major admin dashboard feature additions (filterable tabbed inquiry list, search, bulk actions, export CSV/JSON, demo inquiry badge/notice).",
+      "reason": "The BuildRequest focuses narrowly on stopping the admin initialization spinner/timeout and trusting backend session response, not adding new admin dashboard functionality.",
+      "evidence": [
+        "frontend-file-summaries.txt (frontend/src/components/admin/InquiryList.tsx; preview/production checklists describing exports, bulk actions, demo badge)"
+      ]
+    },
+    {
+      "description": "Changed official admin password in documentation/checklists to VaishnaviAdmin2025.",
+      "reason": "REQ-142 specifies the successful Official Login credentials as Password `Karauli#34`. The added docs repeatedly instruct using a different password.",
+      "evidence": [
+        "frontend/PREVIEW_VALIDATION_CHECKLIST.md (Password: VaishnaviAdmin2025)",
+        "frontend/PRODUCTION_SMOKE_TEST.md (Password: VaishnaviAdmin2025)"
       ]
     }
   ],
-  "hallucinated_features": [],
-  "confidence": 0.78,
+  "confidence": 0.74,
   "changed_files": [
     "backend/main.mo",
+    "frontend-file-summaries.txt",
+    "frontend/PREVIEW_VALIDATION_CHECKLIST.md",
+    "frontend/PRODUCTION_SMOKE_TEST.md",
+    "frontend/src/hooks/useAdminActor.ts",
+    "frontend/src/pages/AdminPage.tsx",
     "project_state.json"
   ]
 }
