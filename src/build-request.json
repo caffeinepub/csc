@@ -1,77 +1,93 @@
 {
   "kind": "build_request",
-  "title": "Fix Admin Dashboard “Error loading inquiries” so Official Login can view all inquiries",
+  "title": "Fix preview Admin Session initialization failure and ensure all inquiries (old + new) are visible",
   "priority": "high",
   "requirements": [
     {
-      "id": "REQ-48",
-      "text": "Fix the Official Login admin-token authorization flow so that after a successful Official Login, the Admin Dashboard can successfully fetch and display all inquiry submissions (i.e., `getAllInquiries` must succeed and return stored inquiries) without showing “Error loading inquiries. Please try again.”",
-      "target": "both",
-      "source": {
-        "messageIds": [
-          "recent-messages"
-        ],
-        "quotes": [
-          "इस समस्या का समाधान करो अभी मुझे सभी पूछताछ देखनी है",
-          "हां ठीक करो",
-          "Error loading inquiries. Please try again."
-        ]
-      },
-      "acceptanceCriteria": [
-        "Log in via Official Login (User ID: K107172621, Password: Karauli#34) and the app navigates to /admin.",
-        "On /admin, the inquiry list loads successfully and displays existing inquiries returned by the backend `getAllInquiries` API.",
-        "Backend rejects/unauthorized errors no longer occur when the correct `caffeineAdminToken` is present in the same tab session.",
-        "Submitting a new inquiry from the public form results in that inquiry appearing in /admin after refresh/refetch."
-      ]
-    },
-    {
-      "id": "REQ-49",
-      "text": "Ensure React Query and actor initialization reliably re-run when the Official Login token changes within the same tab session, so admin queries always use an actor that has had `initializeAccessControlWithSecret(caffeineAdminToken)` applied before any admin inquiry API calls.",
+      "id": "REQ-62",
+      "text": "Fix the preview /admin experience so that after a successful Official Login, the Admin session initializes successfully and the Admin Dashboard reliably loads and displays all stored inquiries (both previously submitted and newly submitted).",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "recent-messages"
+          "msg-1"
         ],
         "quotes": [
-          "Error loading inquiries. Please try again."
+          "तुम कुछ भी करो कैसे भी करो कितना भी समय लगे लेकिन जल्दी करो मुझे सभी पूछताछ नई एवं पुरानी दिखनी चाहिए",
+          "यह एरर मुझे प्रीव्यू  सस्करण स मिल रहा है",
+          "मुझे किसी भी तरह की पूछताछ नहीं दिख रही है"
         ]
       },
       "acceptanceCriteria": [
-        "After login sets `sessionStorage['caffeineAdminToken']`, the admin actor is recreated/refetched and access-control initialization is invoked before running `getAllInquiries`.",
-        "After logout clears the official session and token, attempting to access /admin redirects to / and admin inquiry queries cannot fetch any data.",
-        "Changing token state (login/logout) triggers a refetch of the admin inquiries query without requiring a full page reload."
+        "In the preview deployment, after logging in with Official Login and navigating to /admin, the page does not get stuck on “Initializing admin session…”.",
+        "In the preview deployment, /admin does not show “Admin Session Initialization Failed” under normal conditions when the backend canister is running.",
+        "The Admin Dashboard shows the inquiry list when inquiries exist, including inquiries submitted before the current session and inquiries submitted after the current session begins.",
+        "Submitting a new inquiry from the public form and then opening /admin (or refreshing within /admin) shows the newly submitted inquiry."
       ]
     },
     {
-      "id": "REQ-50",
-      "text": "Update the Admin Dashboard error UI to always display the most specific available failure reason (including non-standard errors) instead of the generic “Error loading inquiries. Please try again.”, and keep actions context-appropriate (Logout for auth-related failures; Retry for transient/non-auth failures).",
-      "target": "frontend",
+      "id": "REQ-63",
+      "text": "Persist inquiries across backend canister upgrades so inquiries are not lost when publishing new preview versions; ensure `submitInquiry` writes to upgrade-safe storage and `getAllInquiries` returns the persisted dataset for authorized admin callers.",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "recent-messages"
+          "msg-1"
         ],
         "quotes": [
-          "Error loading inquiries. Please try again.",
-          "Retry"
+          "मुझे सभी पूछताछ नई एवं पुरानी दिखनी चाहिए"
         ]
       },
       "acceptanceCriteria": [
-        "When an admin inquiry fetch fails, the UI shows a human-readable error message derived from the actual thrown value (Error/message/string/object) whenever possible.",
-        "If the error reason indicates authorization failure (e.g., contains “Unauthorized” or “Only admins”), the primary recovery action presented is Logout (not Retry).",
-        "If the error is not authorization-related, the UI presents a Retry action that triggers a refetch."
+        "After deploying an updated backend version (upgrade), previously submitted inquiries are still returned by `getAllInquiries` for an admin session initialized via `initializeAccessControlWithSecret`.",
+        "After upgrade, `submitInquiry` continues to append inquiries and increments IDs without collisions.",
+        "`getAllInquiries` continues to enforce admin-only access and returns all persisted inquiries."
+      ]
+    },
+    {
+      "id": "REQ-64",
+      "text": "When Admin session initialization fails in preview, show a clear English error message that includes replica rejection details (reject code and request id when available) and provide a deterministic Retry flow that re-creates the admin actor and re-runs `initializeAccessControlWithSecret` before any admin inquiry calls occur.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "मुझे किसी भी तरह की पूछताछ नहीं दिख रही है"
+        ]
+      },
+      "acceptanceCriteria": [
+        "If the backend replica rejects calls (including canister-stopped), the /admin initialization error UI displays an English primary error message plus optional expandable technical details (reject code and request id when available).",
+        "Clicking Retry from the initialization error state forces a fresh admin-actor initialization attempt (new actor + `initializeAccessControlWithSecret`) and then allows inquiries to load without requiring a manual page reload.",
+        "The UI never surfaces a user-facing “Actor not available” error during Retry/Refresh flows; if prerequisites are missing, the query must not execute and should present an actionable message instead."
+      ]
+    },
+    {
+      "id": "REQ-65",
+      "text": "Add a preview validation checklist step (internal) to confirm the backend canister is running before testing Official Login and /admin, and ensure this checklist is documented in the repository for repeatable preview verification.",
+      "target": "unknown",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "यह एरर मुझे प्रीव्यू  सस्करण स मिल रहा है"
+        ]
+      },
+      "acceptanceCriteria": [
+        "A short, clear checklist exists in repo documentation describing how to confirm the backend canister is running in preview before testing /admin.",
+        "Following the checklist results in reproducible verification that Official Login + /admin inquiry loading can be tested without false failures caused by a stopped backend canister."
       ]
     }
   ],
   "constraints": [
-    "Do not edit any files under frontend/src/components/ui (immutable UI components).",
-    "Backend must remain a single Motoko actor in backend/main.mo; do not introduce additional canisters/services.",
-    "Preserve the exact Official Login credentials: User ID \"K107172621\" and Password \"Karauli#34\".",
-    "Preserve the existing admin secret-token mechanism using the sessionStorage key \"caffeineAdminToken\"."
+    "Use English for all user-facing admin UI strings.",
+    "Frontend immutable paths must not be edited: frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui.",
+    "Backend must remain a single Motoko actor with all logic in backend/main.mo; only add migration-related files if truly required by an upgrade strategy.",
+    "Do not introduce external databases or third-party services."
   ],
   "nonGoals": [
-    "Adding new authentication providers (only the existing Official Login + token mechanism is in scope).",
-    "Adding new inquiry fields or changing the inquiry form schema.",
-    "Publishing to production/live as part of this change (focus only on fixing the inquiry loading issue)."
+    "Adding new admin management features beyond restoring reliable inquiry visibility and initialization reliability.",
+    "Changing Official Login credentials (User ID must remain K107172621 and password must remain Karauli#34).",
+    "Implementing notifications (email/WhatsApp) as part of this fix."
   ],
   "imageRequirements": {
     "required": [],

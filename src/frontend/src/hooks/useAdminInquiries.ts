@@ -6,13 +6,16 @@ import { toast } from 'sonner';
 import { isAuthorizationError, normalizeError } from '../utils/adminError';
 
 export function useGetAllInquiries() {
-  const { actor, isFetching: actorFetching } = useAdminActor();
+  const { actor, isFetching: actorFetching, isReady, isInitializing, isError: actorError, error: actorErrorValue } = useAdminActor();
   const adminToken = useOfficialAdminToken();
 
-  return useQuery<Inquiry[]>({
+  const query = useQuery<Inquiry[]>({
     queryKey: ['adminInquiries', adminToken],
     queryFn: async () => {
-      if (!actor) throw new Error('Actor not available');
+      if (!actor) {
+        // This should never happen when enabled guard is correct, but provide clear error
+        throw new Error('Cannot fetch inquiries: Admin session not initialized. Please retry initialization.');
+      }
       try {
         return await actor.getAllInquiries();
       } catch (error: unknown) {
@@ -21,7 +24,11 @@ export function useGetAllInquiries() {
         throw normalizeError(error);
       }
     },
-    enabled: !!actor && !actorFetching && !!adminToken,
+    // Only enable when admin actor is ready (token exists, actor initialized, no init error)
+    enabled: isReady && !!adminToken,
+    // Refetch on mount and reconnect to ensure we always show latest data
+    refetchOnMount: 'always',
+    refetchOnReconnect: true,
     retry: (failureCount, error) => {
       // Don't retry on authorization errors
       if (isAuthorizationError(error)) {
@@ -31,16 +38,45 @@ export function useGetAllInquiries() {
       return failureCount < 2;
     },
   });
+
+  // Safe refetch that only runs when prerequisites are met
+  const safeRefetch = () => {
+    // Only refetch if admin session is ready (token exists and actor is initialized)
+    if (isReady && adminToken) {
+      return query.refetch();
+    }
+    // If prerequisites aren't met, show a helpful message
+    if (isInitializing) {
+      toast.info('Please wait for admin session to initialize');
+    } else if (!adminToken) {
+      toast.error('Admin session not available. Please log in again.');
+    } else {
+      toast.error('Admin session not ready. Please retry initialization.');
+    }
+    // Return a resolved promise if prerequisites aren't met
+    return Promise.resolve({ data: undefined, error: null, isError: false, isSuccess: false });
+  };
+
+  // Expose admin actor initialization state and error
+  return {
+    ...query,
+    safeRefetch,
+    isAdminSessionInitializing: isInitializing,
+    isAdminSessionError: actorError,
+    adminSessionError: actorErrorValue,
+  };
 }
 
 export function useDeleteInquiry() {
-  const { actor } = useAdminActor();
+  const { actor, isReady } = useAdminActor();
   const queryClient = useQueryClient();
   const adminToken = useOfficialAdminToken();
 
   return useMutation({
     mutationFn: async (inquiryId: bigint) => {
-      if (!actor) throw new Error('Actor not available');
+      if (!actor || !isReady) {
+        throw new Error('Cannot delete inquiry: Admin session not ready. Please refresh the page.');
+      }
       try {
         await actor.deleteInquiry(inquiryId);
       } catch (error: unknown) {
@@ -49,26 +85,28 @@ export function useDeleteInquiry() {
         if (isAuthError) {
           toast.error('You do not have permission to perform this action');
         } else {
-          toast.error('पूछताछ हटाने में विफल');
+          toast.error('Failed to delete inquiry');
         }
         throw normalizeError(error);
       }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['adminInquiries', adminToken] });
-      toast.success('पूछताछ सफलतापूर्वक हटाई गई');
+      toast.success('Inquiry deleted successfully');
     },
   });
 }
 
 export function useSetInquiryReadStatus() {
-  const { actor } = useAdminActor();
+  const { actor, isReady } = useAdminActor();
   const queryClient = useQueryClient();
   const adminToken = useOfficialAdminToken();
 
   return useMutation({
     mutationFn: async ({ inquiryId, read }: { inquiryId: bigint; read: boolean }) => {
-      if (!actor) throw new Error('Actor not available');
+      if (!actor || !isReady) {
+        throw new Error('Cannot update inquiry: Admin session not ready. Please refresh the page.');
+      }
       try {
         await actor.setInquiryReadStatus(inquiryId, read);
       } catch (error: unknown) {
@@ -77,7 +115,7 @@ export function useSetInquiryReadStatus() {
         if (isAuthError) {
           toast.error('You do not have permission to perform this action');
         } else {
-          toast.error('स्थिति बदलने में विफल');
+          toast.error('Failed to update status');
         }
         throw normalizeError(error);
       }
@@ -89,13 +127,15 @@ export function useSetInquiryReadStatus() {
 }
 
 export function useBulkSetInquiryReadStatus() {
-  const { actor } = useAdminActor();
+  const { actor, isReady } = useAdminActor();
   const queryClient = useQueryClient();
   const adminToken = useOfficialAdminToken();
 
   return useMutation({
     mutationFn: async ({ inquiryIds, read }: { inquiryIds: bigint[]; read: boolean }) => {
-      if (!actor) throw new Error('Actor not available');
+      if (!actor || !isReady) {
+        throw new Error('Cannot perform bulk action: Admin session not ready. Please refresh the page.');
+      }
       
       try {
         const promises = inquiryIds.map(id => actor.setInquiryReadStatus(id, read));
@@ -106,7 +146,7 @@ export function useBulkSetInquiryReadStatus() {
         if (isAuthError) {
           toast.error('You do not have permission to perform this action');
         } else {
-          toast.error('बल्क ऑपरेशन विफल रहा। कृपया पुनः प्रयास करें।');
+          toast.error('Bulk operation failed. Please try again.');
         }
         throw normalizeError(error);
       }
@@ -115,8 +155,8 @@ export function useBulkSetInquiryReadStatus() {
       queryClient.invalidateQueries({ queryKey: ['adminInquiries', adminToken] });
       toast.success(
         variables.read 
-          ? `${variables.inquiryIds.length} पूछताछ को पढ़ा हुआ चिह्नित किया गया`
-          : `${variables.inquiryIds.length} पूछताछ को अपठित चिह्नित किया गया`
+          ? `${variables.inquiryIds.length} inquiries marked as read`
+          : `${variables.inquiryIds.length} inquiries marked as unread`
       );
     },
   });

@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 33,
+  "projectStateVersion": 41,
   "summary": "Website for “वैष्णवी ई-मित्र & CSC केन्द्र” (E-Mitra & CSC centre) in कोटा (माम), करौली, showcasing services/contact/inquiry form, with an “Official Login” (custom username/password) that now uses User ID K107172621 (password unchanged) and should automatically open the admin/management dashboard after login, with additional admin features requested.",
   "architectural_notes": [
     "Site content/language: Hindi promotional content for Vaishnavi E-Mitra & CSC centre.",
@@ -16,7 +16,11 @@
   ],
   "known_issues": [
     "Attempt to publish Draft Version 2 live/production encountered a deployment error; user requested to try going live again.",
-    "Production/live site: Admin Dashboard shows no inquiries (“अभी तक कोई पूछताछ नहीं है”); previously submitted live inquiries are missing and new test inquiry submissions are not appearing in the dashboard."
+    "Production/live site: Admin Dashboard shows no inquiries (“अभी तक कोई पूछताछ नहीं है”); previously submitted live inquiries are missing and new test inquiry submissions are not appearing in the dashboard.",
+    "Preview version: After Official Login, clicking the Admin Dashboard’s built-in Refresh button triggers “Actor not available” and inquiries fail to load/show.",
+    "Admin Dashboard can get stuck on an indefinite “Initializing admin session…” state after Official Login (admin session initialization/actor setup not completing).",
+    "Preview: After Official Login, /admin fails immediately with “Admin Session Initialization Failed”; assistant suspects backend canister is stopped causing initialization failure.",
+    "Preview: User reports no inquiries (old or new) are visible; must restore full inquiry list visibility after fixing Admin Session initialization failure."
   ],
   "isFixRequest": true,
   "existing_features": [
@@ -371,6 +375,118 @@
         "REQ-50"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-fix-the-admin-dashboard-refresh-flow-so-that-clicking-the-in-page-refresh-button-after-a-successful-official-login-never-results-in-an-actor-not-available-failure-and-reliably-reloads-the-full-inquiry-list",
+      "title": "Fix the Admin Dashboard refresh flow so that clicking the in-page Refresh button after a successful Official Login never results in an “Actor not available” failure and reliably reloads the full inquiry list.",
+      "reqIds": [
+        "REQ-51"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-admin-inquiries-fetching-logic-so-that-manual-refetches-e-g-via-react-query-refetch-cannot-execute-the-query-function-when-prerequisites-are-missing-admin-token-and-initialized-admin-actor-preventing-transient-null-actor-states-from-surfacing-as-user-facing-errors",
+      "title": "Update admin inquiries fetching logic so that manual refetches (e.g., via React Query refetch) cannot execute the query function when prerequisites are missing (admin token and initialized admin actor), preventing transient null-actor states from surfacing as user-facing errors.",
+      "reqIds": [
+        "REQ-52"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-admin-dashboard-error-handling-remains-informative-and-actionable-specifically-for-refresh-triggered-failures-show-a-specific-error-message-not-blank-and-offer-the-correct-action-logout-for-auth-errors-retry-for-non-auth-errors",
+      "title": "Ensure Admin Dashboard error handling remains informative and actionable specifically for refresh-triggered failures: show a specific error message (not blank) and offer the correct action (Logout for auth errors; Retry for non-auth errors).",
+      "reqIds": [
+        "REQ-53"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-the-admin-session-initialization-state-so-the-admin-dashboard-does-not-remain-indefinitely-on-the-initializing-admin-session-screen-when-admin-actor-initialization-fails-e-g-invalid-token-backend-trap-network-failure-ensure-initialization-transitions-to-an-actionable-error-ui-instead-of-an-infinite-spinner",
+      "title": "Fix the admin-session initialization state so the Admin Dashboard does not remain indefinitely on the “Initializing admin session…” screen when admin-actor initialization fails (e.g., invalid token, backend trap, network failure). Ensure initialization transitions to an actionable error UI instead of an infinite spinner.",
+      "reqIds": [
+        "REQ-54"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-admin-actor-readiness-initialization-logic-to-distinguish-between-a-initializing-b-ready-and-c-failed-states-and-expose-these-states-to-hooks-pages-that-depend-on-the-admin-actor",
+      "title": "Update the admin-actor readiness/initialization logic to distinguish between (a) initializing, (b) ready, and (c) failed states, and expose these states to hooks/pages that depend on the admin actor.",
+      "reqIds": [
+        "REQ-55"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-admin-inquiries-fetching-and-manual-refresh-cannot-execute-the-query-function-while-prerequisites-are-missing-admin-token-absent-actor-not-ready-or-admin-actor-init-failed-preventing-user-facing-actor-not-available-errors-during-refresh",
+      "title": "Ensure admin inquiries fetching and manual refresh cannot execute the query function while prerequisites are missing (admin token absent, actor not ready, or admin-actor init failed), preventing user-facing “Actor not available” errors during refresh.",
+      "reqIds": [
+        "REQ-56"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-replace-any-non-english-admin-ui-strings-that-are-user-facing-in-the-initialization-and-dashboard-chrome-header-subtitle-headings-descriptions-with-english-equivalents-while-keeping-existing-functional-behavior-unchanged",
+      "title": "Replace any non-English admin UI strings that are user-facing in the initialization and dashboard chrome (header subtitle, headings, descriptions) with English equivalents, while keeping existing functional behavior unchanged.",
+      "reqIds": [
+        "REQ-57"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-improve-the-admin-session-initialization-failure-handling-on-admin-so-that-when-the-backend-replica-rejects-calls-because-the-backend-canister-is-stopped-the-ui-shows-a-clear-english-actionable-message-and-does-not-appear-as-a-generic-initialization-failure",
+      "title": "Improve the Admin Session initialization failure handling on /admin so that when the backend replica rejects calls because the backend canister is stopped, the UI shows a clear, English, actionable message and does not appear as a generic initialization failure.",
+      "reqIds": [
+        "REQ-58"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-admin-actor-initialization-useadminactor-to-detect-replica-rejection-errors-including-canister-stopped-and-provide-a-deterministic-retry-flow-that-recreates-the-actor-and-re-runs-initializeaccesscontrolwithsecret-when-the-user-clicks-retry",
+      "title": "Update admin actor initialization (useAdminActor) to detect replica rejection errors (including canister-stopped) and provide a deterministic retry flow that recreates the actor and re-runs initializeAccessControlWithSecret when the user clicks Retry.",
+      "reqIds": [
+        "REQ-59"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-harden-error-message-extraction-so-that-replica-rejection-details-e-g-reject-code-reject-text-request-id-are-preserved-and-displayed-in-a-readable-way-for-admin-session-initialization-errors-without-exposing-non-english-ui-chrome",
+      "title": "Harden error-message extraction so that replica rejection details (e.g., reject code, reject text, request id) are preserved and displayed in a readable way for admin-session initialization errors, without exposing non-English UI chrome.",
+      "reqIds": [
+        "REQ-60"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-verify-the-preview-deployment-does-not-leave-the-backend-canister-in-a-stopped-state-after-building-publishing-the-preview-and-document-a-minimal-internal-checklist-step-to-confirm-the-backend-canister-is-running-before-testing-official-login-and-admin",
+      "title": "Verify the preview deployment does not leave the backend canister in a stopped state after building/publishing the preview, and document a minimal internal checklist step to confirm the backend canister is running before testing Official Login and /admin.",
+      "reqIds": [
+        "REQ-61"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-the-preview-admin-experience-so-that-after-a-successful-official-login-the-admin-session-initializes-successfully-and-the-admin-dashboard-reliably-loads-and-displays-all-stored-inquiries-both-previously-submitted-and-newly-submitted",
+      "title": "Fix the preview /admin experience so that after a successful Official Login, the Admin session initializes successfully and the Admin Dashboard reliably loads and displays all stored inquiries (both previously submitted and newly submitted).",
+      "reqIds": [
+        "REQ-62"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-when-admin-session-initialization-fails-in-preview-show-a-clear-english-error-message-that-includes-replica-rejection-details-reject-code-and-request-id-when-available-and-provide-a-deterministic-retry-flow-that-re-creates-the-admin-actor-and-re-runs-initializeaccesscontrolwithsecret-before-any-admin-inquiry-calls-occur",
+      "title": "When Admin session initialization fails in preview, show a clear English error message that includes replica rejection details (reject code and request id when available) and provide a deterministic Retry flow that re-creates the admin actor and re-runs `initializeAccessControlWithSecret` before any admin inquiry calls occur.",
+      "reqIds": [
+        "REQ-64"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-preview-validation-checklist-step-internal-to-confirm-the-backend-canister-is-running-before-testing-official-login-and-admin-and-ensure-this-checklist-is-documented-in-the-repository-for-repeatable-preview-verification",
+      "title": "Add a preview validation checklist step (internal) to confirm the backend canister is running before testing Official Login and /admin, and ensure this checklist is documented in the repository for repeatable preview verification.",
+      "reqIds": [
+        "REQ-65"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -471,6 +587,14 @@
       "summary": "Persist inquiries across canister upgrades so previously submitted inquiries are not lost when deploying a new version.",
       "reqIds": [
         "REQ-45"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-32",
+      "summary": "Persist inquiries across backend canister upgrades so inquiries are not lost when publishing new preview versions; ensure `submitInquiry` writes to upgrade-safe storage and `getAllInquiries` returns the persisted dataset for authorized admin callers.",
+      "reqIds": [
+        "REQ-63"
       ],
       "status": "pending"
     }

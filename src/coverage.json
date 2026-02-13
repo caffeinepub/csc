@@ -1,34 +1,20 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-13T03:35:51.345Z",
+  "generatedAt": "2026-02-13T04:36:37.267Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 3,
+    "total": 4,
     "implemented": 3,
     "items": [
       {
-        "id": "REQ-48",
-        "summary": "Fix the Official Login admin-token authorization flow so that after a successful Official Login, the Admin Dashboard can successfully fetch and display all inquiry submissions (i.e., `getAllInquiries` must succeed and return stored inquiries) without showing “Error loading inquiries. Please try again.”",
+        "id": "REQ-62",
+        "summary": "Fix the preview /admin experience so that after a successful Official Login, the Admin session initializes successfully and the Admin Dashboard reliably loads and displays all stored inquiries (both previously submitted and newly submitted).",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/hooks/useAdminActor.ts",
-          "frontend/src/hooks/useAdminInquiries.ts"
-        ],
-        "matchedFiles": [
-          "frontend/src/hooks/useAdminActor.ts",
-          "frontend/src/hooks/useAdminInquiries.ts"
-        ]
-      },
-      {
-        "id": "REQ-49",
-        "summary": "Ensure React Query and actor initialization reliably re-run when the Official Login token changes within the same tab session, so admin queries always use an actor that has had `initializeAccessControlWithSecret(caffeineAdminToken)` applied before any admin inquiry API calls.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/hooks/useOfficialAdminToken.ts",
           "frontend/src/hooks/useAdminActor.ts",
           "frontend/src/hooks/useAdminInquiries.ts",
           "frontend/src/pages/AdminPage.tsx"
@@ -40,28 +26,53 @@
         ]
       },
       {
-        "id": "REQ-50",
-        "summary": "Update the Admin Dashboard error UI to always display the most specific available failure reason (including non-standard errors) instead of the generic “Error loading inquiries. Please try again.”, and keep actions context-appropriate (Logout for auth-related failures; Retry for transient/non-auth failures).",
+        "id": "REQ-63",
+        "summary": "Persist inquiries across backend canister upgrades so inquiries are not lost when publishing new preview versions; ensure `submitInquiry` writes to upgrade-safe storage and `getAllInquiries` returns the persisted dataset for authorized admin callers.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-64",
+        "summary": "When Admin session initialization fails in preview, show a clear English error message that includes replica rejection details (reject code and request id when available) and provide a deterministic Retry flow that re-creates the admin actor and re-runs `initializeAccessControlWithSecret` before any admin inquiry calls occur.",
         "status": "implemented",
         "plannedFiles": [
           "frontend/src/utils/adminError.ts",
-          "frontend/src/pages/AdminPage.tsx",
-          "frontend/src/hooks/useAdminInquiries.ts"
+          "frontend/src/hooks/useAdminActor.ts",
+          "frontend/src/hooks/useAdminInquiries.ts",
+          "frontend/src/pages/AdminPage.tsx"
         ],
         "matchedFiles": [
           "frontend/src/utils/adminError.ts",
-          "frontend/src/pages/AdminPage.tsx",
-          "frontend/src/hooks/useAdminInquiries.ts"
+          "frontend/src/hooks/useAdminActor.ts",
+          "frontend/src/hooks/useAdminInquiries.ts",
+          "frontend/src/pages/AdminPage.tsx"
+        ]
+      },
+      {
+        "id": "REQ-65",
+        "summary": "Add a preview validation checklist step (internal) to confirm the backend canister is running before testing Official Login and /admin, and ensure this checklist is documented in the repository for repeatable preview verification.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/PREVIEW_VALIDATION_CHECKLIST.md",
+          "frontend/PRODUCTION_SMOKE_TEST.md"
+        ],
+        "matchedFiles": [
+          "frontend/PREVIEW_VALIDATION_CHECKLIST.md",
+          "frontend/PRODUCTION_SMOKE_TEST.md"
         ]
       }
     ]
   },
   "changedFiles": [
     "backend/main.mo",
+    "backend/migration.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
+    "frontend/PREVIEW_VALIDATION_CHECKLIST.md",
+    "frontend/PRODUCTION_SMOKE_TEST.md",
     "frontend/src/hooks/useAdminActor.ts",
     "frontend/src/hooks/useAdminInquiries.ts",
     "frontend/src/pages/AdminPage.tsx",

@@ -2,28 +2,8 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-fix-the-official-login-admin-token-authorization-flow-so-that-after-a-successful-official-login-the-admin-dashboard-can-successfully-fetch-and-display-all-inquiry-submissions-i-e-getallinquiries-must-succeed-and-return-stored-inquiries-without-showing-error-loading-inquiries-please-try-again",
-      "featureTitle": "Fix the Official Login admin-token authorization flow so that after a successful Official Login, the Admin Dashboard can successfully fetch and display all inquiry submissions (i.e., `getAllInquiries` must succeed and return stored inquiries) without showing “Error loading inquiries. Please try again.”",
-      "files": [
-        "frontend/src/hooks/useAdminActor.ts",
-        "frontend/src/hooks/useAdminInquiries.ts"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-48"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-ensure-react-query-and-actor-initialization-reliably-re-run-when-the-official-login-token-changes-within-the-same-tab-session-so-admin-queries-always-use-an-actor-that-has-had-initializeaccesscontrolwithsecret-caffeineadmintoken-applied-before-any-admin-inquiry-api-calls",
-      "featureTitle": "Ensure React Query and actor initialization reliably re-run when the Official Login token changes within the same tab session, so admin queries always use an actor that has had `initializeAccessControlWithSecret(caffeineAdminToken)` applied before any admin inquiry API calls.",
+      "featureId": "feature-fix-the-preview-admin-experience-so-that-after-a-successful-official-login-the-admin-session-initializes-successfully-and-the-admin-dashboard-reliably-loads-and-displays-all-stored-inquiries-both-previously-submitted-and-newly-submitted",
+      "featureTitle": "Fix the preview /admin experience so that after a successful Official Login, the Admin session initializes successfully and the Admin Dashboard reliably loads and displays all stored inquiries (both previously submitted and newly submitted).",
       "files": [
         "frontend/src/hooks/useAdminActor.ts",
         "frontend/src/hooks/useAdminInquiries.ts",
@@ -38,14 +18,15 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-49"
+        "REQ-62"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-update-the-admin-dashboard-error-ui-to-always-display-the-most-specific-available-failure-reason-including-non-standard-errors-instead-of-the-generic-error-loading-inquiries-please-try-again-and-keep-actions-context-appropriate-logout-for-auth-related-failures-retry-for-transient-non-auth-failures",
-      "featureTitle": "Update the Admin Dashboard error UI to always display the most specific available failure reason (including non-standard errors) instead of the generic “Error loading inquiries. Please try again.”, and keep actions context-appropriate (Logout for auth-related failures; Retry for transient/non-auth failures).",
+      "featureId": "feature-when-admin-session-initialization-fails-in-preview-show-a-clear-english-error-message-that-includes-replica-rejection-details-reject-code-and-request-id-when-available-and-provide-a-deterministic-retry-flow-that-re-creates-the-admin-actor-and-re-runs-initializeaccesscontrolwithsecret-before-any-admin-inquiry-calls-occur",
+      "featureTitle": "When Admin session initialization fails in preview, show a clear English error message that includes replica rejection details (reject code and request id when available) and provide a deterministic Retry flow that re-creates the admin actor and re-runs `initializeAccessControlWithSecret` before any admin inquiry calls occur.",
       "files": [
+        "frontend/src/hooks/useAdminActor.ts",
         "frontend/src/hooks/useAdminInquiries.ts",
         "frontend/src/pages/AdminPage.tsx",
         "frontend/src/utils/adminError.ts"
@@ -59,7 +40,27 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-50"
+        "REQ-64"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-a-preview-validation-checklist-step-internal-to-confirm-the-backend-canister-is-running-before-testing-official-login-and-admin-and-ensure-this-checklist-is-documented-in-the-repository-for-repeatable-preview-verification",
+      "featureTitle": "Add a preview validation checklist step (internal) to confirm the backend canister is running before testing Official Login and /admin, and ensure this checklist is documented in the repository for repeatable preview verification.",
+      "files": [
+        "frontend/PREVIEW_VALIDATION_CHECKLIST.md",
+        "frontend/PRODUCTION_SMOKE_TEST.md"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-65"
       ],
       "confidence": "high"
     }

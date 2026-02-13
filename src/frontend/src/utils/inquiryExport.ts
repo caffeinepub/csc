@@ -11,7 +11,7 @@ function escapeCSV(value: string | undefined | null): string {
 
 function formatTimestamp(timestamp: bigint): string {
   const date = new Date(Number(timestamp) / 1000000);
-  return date.toLocaleString('hi-IN', {
+  return date.toLocaleString('en-US', {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
@@ -22,10 +22,10 @@ function formatTimestamp(timestamp: bigint): string {
 }
 
 function getInquiryTypeLabel(type: InquiryType): string {
-  return type === InquiryType.contact ? 'संपर्क' : 'सेवा अनुरोध';
+  return type === InquiryType.contact ? 'Contact' : 'Service Request';
 }
 
-export function exportToJSON(inquiries: Inquiry[]): void {
+export function exportInquiriesToJSON(inquiries: Inquiry[]): void {
   const dataStr = JSON.stringify(inquiries, null, 2);
   const blob = new Blob([dataStr], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
@@ -38,7 +38,7 @@ export function exportToJSON(inquiries: Inquiry[]): void {
   URL.revokeObjectURL(url);
 }
 
-export function exportToCSV(inquiries: Inquiry[]): void {
+export function exportInquiriesToCSV(inquiries: Inquiry[]): void {
   const headers = [
     'ID',
     'Timestamp',
@@ -60,7 +60,7 @@ export function exportToCSV(inquiries: Inquiry[]): void {
     escapeCSV(inquiry.email || ''),
     escapeCSV(inquiry.message),
     escapeCSV(inquiry.serviceCategory || ''),
-    inquiry.read ? 'पढ़ा गया' : 'अपठित',
+    inquiry.read ? 'Read' : 'Unread',
   ]);
 
   const csvContent = [headers.join(','), ...rows.map((row) => row.join(','))].join('\n');

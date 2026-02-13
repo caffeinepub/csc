@@ -1,84 +1,83 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Fix Official Login admin token flow so Admin Dashboard loads inquiries reliably",
+  "title": "Stabilize preview /admin session initialization and inquiry visibility (old + new)",
   "requirements": [
     {
-      "id": "REQ-48",
-      "summary": "Ensure Official Login session token enables Admin Dashboard to fetch and display all inquiries without authorization failures.",
+      "id": "REQ-62",
+      "summary": "Ensure preview /admin reliably initializes the Admin session after Official Login and loads all stored inquiries (previous + new).",
       "acceptanceCriteria": [
-        "Log in via Official Login (User ID: K107172621, Password: Karauli#34) and the app navigates to /admin.",
-        "On /admin, the inquiry list loads successfully and displays existing inquiries returned by the backend `getAllInquiries` API.",
-        "Backend rejects/unauthorized errors no longer occur when the correct `caffeineAdminToken` is present in the same tab session.",
-        "Submitting a new inquiry from the public form results in that inquiry appearing in /admin after refresh/refetch."
+        "In the preview deployment, after logging in with Official Login and navigating to /admin, the page does not get stuck on “Initializing admin session…”.",
+        "In the preview deployment, /admin does not show “Admin Session Initialization Failed” under normal conditions when the backend canister is running.",
+        "The Admin Dashboard shows the inquiry list when inquiries exist, including inquiries submitted before the current session and inquiries submitted after the current session begins.",
+        "Submitting a new inquiry from the public form and then opening /admin (or refreshing within /admin) shows the newly submitted inquiry."
       ],
       "file_operations": [
         {
           "path": "frontend/src/hooks/useAdminActor.ts",
           "operation": "modify",
-          "description": "Make admin actor creation/initialization deterministic for Official Login by ensuring access-control initialization is completed before the actor is considered ready for admin queries, and trigger dependent React Query invalidation when the initialized actor changes (so /admin fetches use the initialized actor). Verify the component's usage instructions before implementing."
+          "description": "Harden admin actor creation/initialization so it cannot hang indefinitely in preview: add a deterministic initialization timeout, ensure initialization is re-run whenever the Official Login token changes, and ensure query cache invalidation occurs only after successful initialization. Verify the component's usage instructions before implementing."
         },
         {
           "path": "frontend/src/hooks/useAdminInquiries.ts",
           "operation": "modify",
-          "description": "Ensure inquiry fetching is tied to the current Official Login token/session so `getAllInquiries` is executed with an actor that has already applied `initializeAccessControlWithSecret(caffeineAdminToken)`, and the inquiry list refreshes when the token/session changes. Verify the component's usage instructions before implementing."
-        }
-      ]
-    },
-    {
-      "id": "REQ-49",
-      "summary": "Recreate/refetch admin actor and admin queries when the Official Login token changes within the same tab session.",
-      "acceptanceCriteria": [
-        "After login sets `sessionStorage['caffeineAdminToken']`, the admin actor is recreated/refetched and access-control initialization is invoked before running `getAllInquiries`.",
-        "After logout clears the official session and token, attempting to access /admin redirects to / and admin inquiry queries cannot fetch any data.",
-        "Changing token state (login/logout) triggers a refetch of the admin inquiries query without requiring a full page reload."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/hooks/useOfficialAdminToken.ts",
-          "operation": "modify",
-          "description": "Ensure the hook reliably emits token changes within the same tab session (Official Login event) so React state updates consistently drive React Query key changes/invalidations for admin actor + admin inquiry queries. Preserve the sessionStorage key \"caffeineAdminToken\". Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/hooks/useAdminActor.ts",
-          "operation": "modify",
-          "description": "Adjust React Query keying and/or invalidation so that when the admin token changes (login/logout) the admin actor query reruns, and dependent admin queries are invalidated/refetched (without full reload). Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/hooks/useAdminInquiries.ts",
-          "operation": "modify",
-          "description": "Update React Query `queryKey` (or invalidation wiring) so the admin inquiries query refetches on admin token changes and never reuses a stale unauthorized result from a pre-login actor. Verify the component's usage instructions before implementing."
+          "description": "Make inquiry fetching reliably reflect persisted data by enforcing refetch-on-mount (and reconnect) behavior for the admin inquiry query, while preserving the guard that prevents calls before the admin actor/session is ready (avoids partial/empty loads being treated as final). Verify the component's usage instructions before implementing."
         },
         {
           "path": "frontend/src/pages/AdminPage.tsx",
           "operation": "modify",
-          "description": "Ensure /admin behavior remains correct across login/logout: redirect away when not officially logged in, and refresh inquiry list after token changes (via updated hooks) without manual reload. Verify the component's usage instructions before implementing."
+          "description": "Adjust Admin Dashboard loading flow so it transitions out of “Initializing admin session…” deterministically (success -> load inquiries; failure -> error UI), and ensure Refresh triggers a guaranteed refetch once prerequisites are satisfied. Use existing shadcn/ui Card/Alert/Button patterns for consistent UX; verify the component's usage instructions before implementing."
         }
       ]
     },
     {
-      "id": "REQ-50",
-      "summary": "Improve Admin Dashboard error UI to show specific failure reasons and present Logout vs Retry based on auth vs transient errors.",
+      "id": "REQ-64",
+      "summary": "Show clear English initialization errors with replica rejection details and provide a deterministic Retry that re-creates the admin actor and reruns initialization before any inquiry calls.",
       "acceptanceCriteria": [
-        "When an admin inquiry fetch fails, the UI shows a human-readable error message derived from the actual thrown value (Error/message/string/object) whenever possible.",
-        "If the error reason indicates authorization failure (e.g., contains “Unauthorized” or “Only admins”), the primary recovery action presented is Logout (not Retry).",
-        "If the error is not authorization-related, the UI presents a Retry action that triggers a refetch."
+        "If the backend replica rejects calls (including canister-stopped), the /admin initialization error UI displays an English primary error message plus optional expandable technical details (reject code and request id when available).",
+        "Clicking Retry from the initialization error state forces a fresh admin-actor initialization attempt (new actor + `initializeAccessControlWithSecret`) and then allows inquiries to load without requiring a manual page reload.",
+        "The UI never surfaces a user-facing “Actor not available” error during Retry/Refresh flows; if prerequisites are missing, the query must not execute and should present an actionable message instead."
       ],
       "file_operations": [
         {
           "path": "frontend/src/utils/adminError.ts",
-          "operation": "create",
-          "description": "Add a small utility to (1) derive a human-readable message from unknown thrown values (Error/string/object/etc.) and (2) detect authorization-related failures (e.g., contains \"Unauthorized\"/\"Only admins\") to drive context-appropriate actions. Verify the component's usage instructions before implementing."
+          "operation": "modify",
+          "description": "Improve replica rejection parsing to extract reject code and request id from both string messages and structured error objects when available; keep all user-facing admin strings in English and provide a stable shape consumed by the /admin UI. Verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/pages/AdminPage.tsx",
+          "path": "frontend/src/hooks/useAdminActor.ts",
           "operation": "modify",
-          "description": "Replace the generic “Error loading inquiries. Please try again.” fallback with messaging from the actual error (including non-standard thrown values), and switch primary action: Logout for auth-related failures, Retry for non-auth failures. Keep using existing immutable UI components under frontend/src/components/ui unchanged. Verify the component's usage instructions before implementing."
+          "description": "Ensure Retry is deterministic: fully clear the cached admin actor state, force creation of a fresh actor instance, rerun `initializeAccessControlWithSecret`, and expose enriched error details (including replica rejection metadata) for the UI to render. Verify the component's usage instructions before implementing."
         },
         {
           "path": "frontend/src/hooks/useAdminInquiries.ts",
           "operation": "modify",
-          "description": "Align hook-side error normalization with the Admin Dashboard error UI so non-standard thrown values are preserved as meaningful messages where possible (e.g., backend trap reasons), and surfaced to the page for display. Verify the component's usage instructions before implementing."
+          "description": "Remove any path that can surface a user-facing “Actor not available” by tightening query/mutation guards (no execution when admin actor/session prerequisites are missing) and returning actionable, English errors when prerequisites are not met. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/pages/AdminPage.tsx",
+          "operation": "modify",
+          "description": "Update the initialization failure screen to always show a clear English primary message, with an expandable technical details section (reject code and request id when available), and wire Retry to also reset relevant UI state and trigger inquiry loading automatically after successful re-initialization. Use existing shadcn/ui Alert/Button components; verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-65",
+      "summary": "Document an internal preview validation checklist to confirm the backend canister is running before testing Official Login and /admin.",
+      "acceptanceCriteria": [
+        "A short, clear checklist exists in repo documentation describing how to confirm the backend canister is running in preview before testing /admin.",
+        "Following the checklist results in reproducible verification that Official Login + /admin inquiry loading can be tested without false failures caused by a stopped backend canister."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/PREVIEW_VALIDATION_CHECKLIST.md",
+          "operation": "create",
+          "description": "Add a concise preview validation checklist documenting how to confirm the backend canister is running before testing Official Login and /admin, and what to do if the canister is stopped (commands and expected outputs)."
+        },
+        {
+          "path": "frontend/PRODUCTION_SMOKE_TEST.md",
+          "operation": "modify",
+          "description": "Reference/link the new preview validation checklist from the existing testing documentation so preview verification is repeatable and not blocked by a stopped backend canister."
         }
       ]
     }

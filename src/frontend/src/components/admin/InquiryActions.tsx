@@ -18,42 +18,26 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { MoreVertical, Trash2, CheckCircle, Circle, Download } from 'lucide-react';
 import { useDeleteInquiry, useSetInquiryReadStatus } from '../../hooks/useAdminInquiries';
-import { toast } from 'sonner';
-import { exportToJSON, exportToCSV } from '../../utils/inquiryExport';
+import { MoreVertical, Trash2, CheckCircle, Circle, Download, FileJson, FileSpreadsheet, Loader2 } from 'lucide-react';
+import { exportInquiriesToJSON, exportInquiriesToCSV } from '../../utils/inquiryExport';
 
 interface InquiryActionsProps {
   inquiry: Inquiry;
 }
 
 export default function InquiryActions({ inquiry }: InquiryActionsProps) {
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const deleteInquiry = useDeleteInquiry();
   const setReadStatus = useSetInquiryReadStatus();
 
-  const handleToggleRead = async () => {
-    try {
-      await setReadStatus.mutateAsync({
-        inquiryId: inquiry.id,
-        read: !inquiry.read,
-      });
-      toast.success(inquiry.read ? 'अपठित के रूप में चिह्नित' : 'पढ़ा हुआ चिह्नित');
-    } catch (error) {
-      toast.error('स्थिति बदलने में त्रुटि');
-      console.error('Error toggling read status:', error);
-    }
+  const handleDelete = () => {
+    deleteInquiry.mutate(inquiry.id);
+    setShowDeleteDialog(false);
   };
 
-  const handleDelete = async () => {
-    try {
-      await deleteInquiry.mutateAsync(inquiry.id);
-      toast.success('पूछताछ हटा दी गई');
-      setDeleteDialogOpen(false);
-    } catch (error) {
-      toast.error('पूछताछ हटाने में त्रुटि');
-      console.error('Error deleting inquiry:', error);
-    }
+  const handleToggleRead = () => {
+    setReadStatus.mutate({ inquiryId: inquiry.id, read: !inquiry.read });
   };
 
   return (
@@ -66,45 +50,43 @@ export default function InquiryActions({ inquiry }: InquiryActionsProps) {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuItem onClick={handleToggleRead} disabled={setReadStatus.isPending}>
-            {inquiry.read ? (
-              <>
-                <Circle className="mr-2 h-4 w-4" />
-                अपठित के रूप में चिह्नित करें
-              </>
+            {setReadStatus.isPending ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : inquiry.read ? (
+              <Circle className="mr-2 h-4 w-4" />
             ) : (
-              <>
-                <CheckCircle className="mr-2 h-4 w-4" />
-                पढ़ा हुआ चिह्नित करें
-              </>
+              <CheckCircle className="mr-2 h-4 w-4" />
             )}
+            {inquiry.read ? 'Mark as unread' : 'Mark as read'}
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem
-            onClick={() => setDeleteDialogOpen(true)}
+            onClick={() => setShowDeleteDialog(true)}
             className="text-destructive focus:text-destructive"
+            disabled={deleteInquiry.isPending}
           >
-            <Trash2 className="mr-2 h-4 w-4" />
-            हटाएं
+            {deleteInquiry.isPending ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Trash2 className="mr-2 h-4 w-4" />
+            )}
+            Delete
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>क्या आप निश्चित हैं?</AlertDialogTitle>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              यह क्रिया पूर्ववत नहीं की जा सकती। यह पूछताछ स्थायी रूप से हटा दी जाएगी।
+              This action cannot be undone. This will permanently delete the inquiry from {inquiry.name}.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>रद्द करें</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDelete}
-              disabled={deleteInquiry.isPending}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              {deleteInquiry.isPending ? 'हटाया जा रहा है...' : 'हटाएं'}
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">
+              Delete
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -118,32 +100,46 @@ interface BulkExportActionsProps {
 }
 
 export function BulkExportActions({ inquiries }: BulkExportActionsProps) {
-  const handleExportJSON = () => {
-    exportToJSON(inquiries);
-    toast.success('JSON फ़ाइल डाउनलोड हो रही है');
+  const [isExporting, setIsExporting] = useState(false);
+
+  const handleExportJSON = async () => {
+    setIsExporting(true);
+    try {
+      await exportInquiriesToJSON(inquiries);
+    } finally {
+      setIsExporting(false);
+    }
   };
 
-  const handleExportCSV = () => {
-    exportToCSV(inquiries);
-    toast.success('CSV फ़ाइल डाउनलोड हो रही है');
+  const handleExportCSV = async () => {
+    setIsExporting(true);
+    try {
+      await exportInquiriesToCSV(inquiries);
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm">
-          <Download className="mr-2 h-4 w-4" />
+        <Button variant="outline" size="sm" disabled={isExporting}>
+          {isExporting ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <Download className="mr-2 h-4 w-4" />
+          )}
           Export
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={handleExportJSON}>
-          <Download className="mr-2 h-4 w-4" />
-          JSON के रूप में डाउनलोड करें
+        <DropdownMenuItem onClick={handleExportJSON} disabled={isExporting}>
+          <FileJson className="mr-2 h-4 w-4" />
+          Export as JSON
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={handleExportCSV}>
-          <Download className="mr-2 h-4 w-4" />
-          CSV के रूप में डाउनलोड करें
+        <DropdownMenuItem onClick={handleExportCSV} disabled={isExporting}>
+          <FileSpreadsheet className="mr-2 h-4 w-4" />
+          Export as CSV
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

@@ -69,7 +69,7 @@ export default function InquiryList({ inquiries }: InquiryListProps) {
 
   const formatTimestamp = (timestamp: bigint) => {
     const date = new Date(Number(timestamp) / 1000000);
-    return date.toLocaleString('hi-IN', {
+    return date.toLocaleString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -79,7 +79,7 @@ export default function InquiryList({ inquiries }: InquiryListProps) {
   };
 
   const getInquiryTypeLabel = (type: InquiryType) => {
-    return type === InquiryType.contact ? 'संपर्क' : 'सेवा अनुरोध';
+    return type === InquiryType.contact ? 'Contact' : 'Service Request';
   };
 
   const handleBulkMarkAsRead = () => {
@@ -111,18 +111,18 @@ export default function InquiryList({ inquiries }: InquiryListProps) {
       <div className="space-y-4 p-4 bg-muted/30 rounded-lg border">
         <div className="flex items-center gap-2 text-sm font-medium">
           <Filter className="h-4 w-4" />
-          <span>खोज और फ़िल्टर</span>
+          <span>Search and Filters</span>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Search */}
           <div className="space-y-2">
-            <Label htmlFor="search" className="text-xs">नाम या फ़ोन नंबर खोजें</Label>
+            <Label htmlFor="search" className="text-xs">Search by name or phone</Label>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 id="search"
-                placeholder="खोजें..."
+                placeholder="Search..."
                 value={searchText}
                 onChange={(e) => setSearchText(e.target.value)}
                 className="pl-9"
@@ -132,28 +132,28 @@ export default function InquiryList({ inquiries }: InquiryListProps) {
 
           {/* Inquiry Type Filter */}
           <div className="space-y-2">
-            <Label htmlFor="inquiryType" className="text-xs">पूछताछ प्रकार</Label>
+            <Label htmlFor="inquiryType" className="text-xs">Inquiry Type</Label>
             <Select value={inquiryTypeFilter} onValueChange={setInquiryTypeFilter}>
               <SelectTrigger id="inquiryType">
-                <SelectValue placeholder="सभी प्रकार" />
+                <SelectValue placeholder="All types" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">सभी प्रकार</SelectItem>
-                <SelectItem value="contact">संपर्क</SelectItem>
-                <SelectItem value="serviceRequest">सेवा अनुरोध</SelectItem>
+                <SelectItem value="all">All types</SelectItem>
+                <SelectItem value="contact">Contact</SelectItem>
+                <SelectItem value="serviceRequest">Service Request</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           {/* Service Category Filter */}
           <div className="space-y-2">
-            <Label htmlFor="serviceCategory" className="text-xs">सेवा श्रेणी</Label>
+            <Label htmlFor="serviceCategory" className="text-xs">Service Category</Label>
             <Select value={serviceCategoryFilter} onValueChange={setServiceCategoryFilter}>
               <SelectTrigger id="serviceCategory">
-                <SelectValue placeholder="सभी श्रेणियाँ" />
+                <SelectValue placeholder="All categories" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">सभी श्रेणियाँ</SelectItem>
+                <SelectItem value="all">All categories</SelectItem>
                 {serviceCategories.map(category => (
                   <SelectItem key={category} value={category}>
                     {category}
@@ -167,7 +167,7 @@ export default function InquiryList({ inquiries }: InquiryListProps) {
         {/* Bulk Actions */}
         {filteredInquiries.length > 0 && (
           <div className="flex items-center gap-2 pt-2 border-t">
-            <span className="text-xs text-muted-foreground">बल्क एक्शन:</span>
+            <span className="text-xs text-muted-foreground">Bulk actions:</span>
             <Button
               size="sm"
               variant="outline"
@@ -176,7 +176,7 @@ export default function InquiryList({ inquiries }: InquiryListProps) {
               className="h-8"
             >
               <CheckCheck className="mr-1 h-3 w-3" />
-              सभी को पढ़ा हुआ चिह्नित करें
+              Mark all as read
             </Button>
             <Button
               size="sm"
@@ -186,7 +186,7 @@ export default function InquiryList({ inquiries }: InquiryListProps) {
               className="h-8"
             >
               <XCircle className="mr-1 h-3 w-3" />
-              सभी को अपठित चिह्नित करें
+              Mark all as unread
             </Button>
           </div>
         )}
@@ -195,22 +195,22 @@ export default function InquiryList({ inquiries }: InquiryListProps) {
       {/* Tabs and List */}
       <Tabs value={filter} onValueChange={(v) => setFilter(v as typeof filter)}>
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="all">सभी ({inquiries.length})</TabsTrigger>
+          <TabsTrigger value="all">All ({inquiries.length})</TabsTrigger>
           <TabsTrigger value="unread">
-            अपठित {unreadCount > 0 && `(${unreadCount})`}
+            Unread {unreadCount > 0 && `(${unreadCount})`}
           </TabsTrigger>
-          <TabsTrigger value="read">पढ़े गए ({inquiries.length - unreadCount})</TabsTrigger>
+          <TabsTrigger value="read">Read ({inquiries.length - unreadCount})</TabsTrigger>
         </TabsList>
 
         <TabsContent value={filter} className="mt-4">
           <div className="mb-2 text-sm text-muted-foreground">
-            {filteredInquiries.length} परिणाम मिले
+            {filteredInquiries.length} results found
           </div>
           <ScrollArea className="h-[600px] pr-4">
             {filteredInquiries.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
                 <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>कोई पूछताछ नहीं मिली</p>
+                <p>No inquiries found</p>
               </div>
             ) : (
               <div className="space-y-4">
@@ -226,13 +226,13 @@ export default function InquiryList({ inquiries }: InquiryListProps) {
                             {inquiry.name}
                             {!inquiry.read && (
                               <Badge variant="default" className="text-xs">
-                                नया
+                                New
                               </Badge>
                             )}
                           </CardTitle>
                           <div className="flex items-center gap-2 text-sm text-muted-foreground">
                             <Calendar className="h-3 w-3" />
-                            {formatTimestamp(inquiry.timestamp)}
+                            <span>{formatTimestamp(inquiry.timestamp)}</span>
                           </div>
                         </div>
                         <InquiryActions inquiry={inquiry} />
@@ -240,32 +240,28 @@ export default function InquiryList({ inquiries }: InquiryListProps) {
                     </CardHeader>
                     <CardContent className="space-y-3">
                       <div className="flex flex-wrap gap-2">
-                        <Badge variant="outline">{getInquiryTypeLabel(inquiry.inquiryType)}</Badge>
+                        <Badge variant="outline" className="gap-1">
+                          <Tag className="h-3 w-3" />
+                          {getInquiryTypeLabel(inquiry.inquiryType)}
+                        </Badge>
                         {inquiry.serviceCategory && (
-                          <Badge variant="secondary" className="flex items-center gap-1">
-                            <Tag className="h-3 w-3" />
+                          <Badge variant="secondary" className="gap-1">
                             {inquiry.serviceCategory}
                           </Badge>
                         )}
                       </div>
 
-                      <div className="space-y-2 text-sm">
-                        <div className="flex items-center gap-2">
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-sm">
                           <Phone className="h-4 w-4 text-muted-foreground" />
-                          <a
-                            href={`tel:${inquiry.phoneNumber}`}
-                            className="text-primary hover:underline"
-                          >
+                          <a href={`tel:${inquiry.phoneNumber}`} className="hover:underline">
                             {inquiry.phoneNumber}
                           </a>
                         </div>
                         {inquiry.email && (
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 text-sm">
                             <Mail className="h-4 w-4 text-muted-foreground" />
-                            <a
-                              href={`mailto:${inquiry.email}`}
-                              className="text-primary hover:underline"
-                            >
+                            <a href={`mailto:${inquiry.email}`} className="hover:underline">
                               {inquiry.email}
                             </a>
                           </div>
@@ -273,9 +269,10 @@ export default function InquiryList({ inquiries }: InquiryListProps) {
                       </div>
 
                       <div className="pt-2 border-t">
-                        <p className="text-sm text-foreground whitespace-pre-wrap">
-                          {inquiry.message}
-                        </p>
+                        <div className="flex items-start gap-2">
+                          <MessageSquare className="h-4 w-4 text-muted-foreground mt-0.5" />
+                          <p className="text-sm whitespace-pre-wrap">{inquiry.message}</p>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>

@@ -38,7 +38,8 @@ This document provides a manual smoke-test checklist to verify that the producti
 - [ ] Verify successful login and automatic navigation to `/admin`
 - [ ] Confirm Admin Dashboard renders with:
   - [ ] Header showing "Admin Dashboard" with logo
-  - [ ] Inquiry list/tabs (All/Unread/Read)
+  - [ ] "Initializing admin session..." message briefly appears (if actor is still initializing)
+  - [ ] Inquiry list/tabs (All/Unread/Read) loads after initialization completes
   - [ ] Logout button in header
   - [ ] No blank screens or stuck loading states
 
@@ -53,6 +54,7 @@ This document provides a manual smoke-test checklist to verify that the producti
 - [ ] Click the "Refresh" button
 - [ ] Verify button shows loading state ("Refreshing..." with spinning icon)
 - [ ] Confirm data refetches without errors
+- [ ] Verify no "Actor not available" error appears
 
 #### 4b. Inquiry Management (When Inquiries Exist)
 - [ ] Verify inquiry list loads correctly
@@ -60,11 +62,13 @@ This document provides a manual smoke-test checklist to verify that the producti
 - [ ] Test marking inquiry as read:
   - [ ] Click "Mark as read" action on an unread inquiry
   - [ ] Verify inquiry updates to read state (opacity changes, "नया" badge removed)
-  - [ ] Click "Refresh" button to confirm state persists after refetch
+  - [ ] Click "Refresh" button in header to confirm state persists after refetch
+  - [ ] Verify no "Actor not available" error during refresh
 - [ ] Test marking inquiry as unread:
   - [ ] Click "Mark as unread" action on a read inquiry
   - [ ] Verify inquiry updates to unread state ("नया" badge appears)
-  - [ ] Click "Refresh" button to confirm state persists after refetch
+  - [ ] Click "Refresh" button in header to confirm state persists after refetch
+  - [ ] Verify no "Actor not available" error during refresh
 - [ ] Test search by name/phone
 - [ ] Test filter by inquiry type
 - [ ] Test bulk actions: select multiple inquiries and mark as read/unread
@@ -76,10 +80,20 @@ This document provides a manual smoke-test checklist to verify that the producti
   - [ ] Verify confirmation dialog appears
   - [ ] Confirm deletion
   - [ ] Verify inquiry is removed from list
-  - [ ] Click "Refresh" button to confirm inquiry does not reappear
+  - [ ] Click "Refresh" button in header to confirm inquiry does not reappear
+  - [ ] Verify no "Actor not available" error during refresh
 - [ ] Verify no console errors during any action
 - [ ] Click Logout button
 - [ ] Verify redirect to homepage and session cleared
+
+#### 4c. Refresh Button During Initialization
+**Expected:** Refresh button is disabled while admin session initializes
+- [ ] Log out and log back in via Official Login
+- [ ] Immediately after navigation to `/admin`, observe the "Initializing admin session..." state
+- [ ] Verify that if you could click Refresh during this state, it would not trigger an error
+- [ ] Wait for initialization to complete
+- [ ] Click "Refresh" button once inquiries are loaded
+- [ ] Verify successful refetch without "Actor not available" error
 
 ### 5. Public Inquiry Form Submission
 **Expected:** Form submission succeeds, shows success feedback, resets, and appears in Admin Dashboard
@@ -128,20 +142,16 @@ This document provides a manual smoke-test checklist to verify that the producti
   - [ ] Test actions work on mobile
   - [ ] Test "Refresh" button in empty state (if applicable)
 
-## Success Criteria
-All checkboxes above should be checked (✓) for the production deployment to be considered stable and ready for live traffic.
+## Preview Environment Troubleshooting
 
-## Reporting Issues
-If any test case fails:
-1. Note the specific step that failed
-2. Capture browser console errors (if any)
-3. Take screenshots of the issue
-4. Document the browser and device used
-5. Report to the development team with all details
+For preview environment issues, see the [Preview Validation Checklist](./PREVIEW_VALIDATION_CHECKLIST.md) which provides step-by-step guidance for:
+- Verifying backend canister is running
+- Testing backend connectivity
+- Resolving "Admin Session Initialization Failed" errors
+- Handling canister stopped errors
 
-## Known Limitations
-- **Data Persistence:** Inquiries are stored in the backend canister's stable memory. If the canister is upgraded without proper migration, old inquiries may be lost. Always verify that migration logic in `backend/migration.mo` is correctly implemented before upgrading.
-- **Inquiry ID Sequence:** The `nextId` counter must be preserved across upgrades to prevent ID collisions.
+### Quick Reference: Backend Service Stopped Error
 
----
-**Last Updated:** February 13, 2026
+If you encounter "Admin Session Initialization Failed" with a message indicating the backend service is stopped:
+
+**Resolution:**

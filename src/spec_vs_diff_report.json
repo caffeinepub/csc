@@ -1,33 +1,51 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-13T03:35:51.341Z",
-  "summary": "Diff adds centralized admin error utilities, updates admin actor and inquiries hooks to key off the admin token and initialize backend access control, and improves AdminPage error UI/actions. However, the diff does not show any change to the Official Login flow/token value that would ensure the backend’s expected secret matches what is stored in sessionStorage['caffeineAdminToken'], so the core authorization-flow fix may be incomplete based on provided evidence.",
+  "generatedAt": "2026-02-13T04:36:37.262Z",
+  "summary": "Implemented new frontend admin-session initialization flow with explicit initializing/failed states, timeout, replica rejection detail extraction, and a Retry path; added a preview checklist doc stub; added a backend migration module and wired an upgrade migration hook. However, backend inquiry persistence across upgrades is not evidenced (no stable storage shown), and the preview checklist appears incomplete. Also, additional admin capabilities (bulk export/actions and a production smoke test doc) appear introduced beyond the stated non-goals.",
   "missing_requirements": [
     {
-      "id": "REQ-48",
-      "requirement": "Fix the Official Login admin-token authorization flow so that after a successful Official Login, the Admin Dashboard can successfully fetch and display all inquiry submissions (getAllInquiries succeeds) without showing the generic error.",
-      "reason": "While admin token consumption and actor initialization were added, the diff provides no evidence that the Official Login sets sessionStorage['caffeineAdminToken'] to the backend-expected secret (backend now checks against a hardcoded ADMIN_SECRET). Without aligning the token value, getAllInquiries may still trap as Unauthorized even when a token exists.",
+      "id": "REQ-63",
+      "requirement": "Persist inquiries across backend canister upgrades so inquiries are not lost when publishing new preview versions; ensure `submitInquiry` writes to upgrade-safe storage and `getAllInquiries` returns the persisted dataset for authorized admin callers.",
+      "reason": "The diff shows `nextId` as a regular `var` and `inquiries` as a non-stable `Map.empty` without any visible `stable` variables or explicit `preupgrade/postupgrade` persistence logic. The added `backend/migration.mo` currently returns `old` unchanged and does not demonstrate storing/restoring inquiries across upgrades.",
       "evidence": [
         "backend/main.mo",
-        "frontend/src/hooks/useAdminActor.ts",
-        "frontend/src/hooks/useAdminInquiries.ts"
+        "backend/migration.mo"
+      ]
+    },
+    {
+      "id": "REQ-65",
+      "requirement": "Add a preview validation checklist step (internal) to confirm the backend canister is running before testing Official Login and /admin, and ensure this checklist is documented in the repository for repeatable preview verification.",
+      "reason": "A checklist file was added, but in the provided diff it is truncated immediately after 'Check canister status:' with an empty code block and no concrete, repeatable steps shown (e.g., exact commands/URLs and expected outputs).",
+      "evidence": [
+        "frontend/PREVIEW_VALIDATION_CHECKLIST.md"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Added/expanded admin features such as bulk export actions (JSON/CSV) and advanced inquiry list filtering/search functionality.",
-      "reason": "These features are described in the modified documentation/summary file but are not requested by REQ-48/49/50, which are scoped specifically to fixing admin inquiry loading, actor/token re-initialization, and error UI messaging/actions.",
+      "description": "Added/used admin bulk export and additional inquiry management actions (e.g., `BulkExportActions`) beyond restoring initialization reliability and inquiry visibility.",
+      "reason": "BuildRequest non-goals explicitly avoid adding new admin management features beyond restoring reliable inquiry visibility/initialization. The diff shows AdminPage importing and rendering `BulkExportActions`, implying new/expanded admin functionality.",
       "evidence": [
+        "frontend/src/pages/AdminPage.tsx",
         "frontend-file-summaries.txt"
+      ]
+    },
+    {
+      "description": "Added a 'Production Smoke Test Checklist' repository document.",
+      "reason": "Only a preview validation checklist (REQ-65) was requested; production smoke-test documentation was not requested as part of this build.",
+      "evidence": [
+        "frontend/PRODUCTION_SMOKE_TEST.md"
       ]
     }
   ],
-  "confidence": 0.62,
+  "confidence": 0.72,
   "changed_files": [
     "backend/main.mo",
+    "backend/migration.mo",
     "frontend-file-summaries.txt",
+    "frontend/PREVIEW_VALIDATION_CHECKLIST.md",
+    "frontend/PRODUCTION_SMOKE_TEST.md",
     "frontend/src/hooks/useAdminActor.ts",
     "frontend/src/hooks/useAdminInquiries.ts",
     "frontend/src/pages/AdminPage.tsx",
