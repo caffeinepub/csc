@@ -1,26 +1,4 @@
 {
   "kind": "feature_evidence_report",
-  "features": [
-    {
-      "featureId": "feature-ensure-the-admin-dashboard-user-experience-matches-the-screenshot-scenario-but-succeeds-after-official-login-navigating-to-admin-loads-the-inquiry-list-instead-of-showing-failed-to-load-inquiries-unauthorized-only-admins-can-perform-this-action",
-      "featureTitle": "Ensure the admin dashboard user experience matches the screenshot scenario but succeeds: after Official Login, navigating to `/admin` loads the inquiry list instead of showing “Failed to Load Inquiries: Unauthorized: Only admins can perform this action.”",
-      "files": [
-        "frontend/src/hooks/useAdminActor.ts",
-        "frontend/src/hooks/useAdminInquiries.ts",
-        "frontend/src/pages/AdminPage.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-77"
-      ],
-      "confidence": "high"
-    }
-  ]
+  "features": []
 }

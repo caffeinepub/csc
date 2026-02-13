@@ -41,9 +41,9 @@ export class ErrorBoundary extends Component<Props, State> {
               </div>
             </div>
             <div className="space-y-2">
-              <h1 className="text-2xl font-bold text-foreground">कुछ गलत हो गया</h1>
+              <h1 className="text-2xl font-bold text-foreground">Something Went Wrong</h1>
               <p className="text-muted-foreground">
-                एप्लिकेशन में एक अप्रत्याशित त्रुटि हुई है। कृपया पृष्ठ को रीफ्रेश करें।
+                An unexpected error occurred in the application. Please refresh the page.
               </p>
             </div>
             {this.state.error && (
@@ -55,7 +55,7 @@ export class ErrorBoundary extends Component<Props, State> {
             )}
             <Button onClick={this.handleReset} size="lg" className="w-full">
               <RefreshCw className="mr-2 h-4 w-4" />
-              होमपेज पर वापस जाएं
+              Return to Homepage
             </Button>
           </div>
         </div>

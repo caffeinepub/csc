@@ -1,62 +1,30 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-13T05:37:52.525Z",
-  "summary": "Diff updates frontend admin initialization/inquiry fetching to be more robust (init states, retry/self-heal, timeout, better error handling) and shows backend inquiry APIs guarded by admin checks. However, the core backend requirements for deterministic per-caller admin bootstrapping and upgrade-safe inquiry persistence are not evidenced in the diff summary, and no validation/checklist updates are shown.",
+  "generatedAt": "2026-02-13T11:47:44.449Z",
+  "summary": "The diff does not implement the requested deterministic admin-secret bootstrapping or the `isCallerAdmin()` query. Admin-gated APIs now check `isAdminSafe(caller)` (role-based), but there is no `_initializeAccessControlWithSecret(\"admin-secret-token-2024\")` mechanism to grant admin to any caller, and no `isCallerAdmin()` endpoint.",
   "missing_requirements": [
     {
-      "id": "REQ-75",
-      "requirement": "Fix backend admin bootstrapping so `_initializeAccessControlWithSecret(\"admin-secret-token-2024\")` deterministically grants admin authorization to the current caller, is idempotent per-caller, and is not blocked by a global already-initialized flag.",
-      "reason": "The diff summary for `backend/main.mo` does not show any implementation or changes to `_initializeAccessControlWithSecret`, nor any per-caller admin authorization mapping/state changes. It only shows admin-gated inquiry methods calling `AccessControl.isAdmin` and inclusion of `MixinAuthorization(accessControlState)` without demonstrating the required bootstrapping behavior.",
-      "evidence": [
-        "backend/main.mo",
-        "frontend/src/hooks/useAdminActor.ts (shows frontend still calling `_initializeAccessControlWithSecret`, but no backend fix evidenced)"
-      ]
-    },
-    {
-      "id": "REQ-76",
-      "requirement": "Persist inquiry submissions across canister upgrades (upgrade-safe storage), including persisting inquiries and `nextId` with correct continuation after upgrade; only add migration logic via `backend/migration.mo` if needed.",
-      "reason": "`backend/main.mo` shows `let inquiries = Map.empty<Nat, Inquiry>();` and `var nextId = 0;` with no `stable` storage, and no `preupgrade/postupgrade` hooks or migration usage shown. No `backend/migration.mo` changes are included.",
+      "id": "REQ-98",
+      "requirement": "Update backend admin-session bootstrapping so that calling `_initializeAccessControlWithSecret(\"admin-secret-token-2024\")` ALWAYS grants admin privileges to the current caller (even if another principal was previously admin), while wrong secrets do not grant admin.",
+      "reason": "`backend/main.mo` contains no `_initializeAccessControlWithSecret` function and no code path that checks the fixed secret `admin-secret-token-2024` to grant per-caller admin privileges. Admin-gated APIs instead rely on `AccessControl.getUserRole` via `isAdminSafe(caller)`, but no secret-based elevation is present in the shown changes.",
       "evidence": [
         "backend/main.mo"
       ]
     },
     {
-      "id": "REQ-78",
-      "requirement": "Build and validate the fix using Preview and Production checklists (relevant steps pass).",
-      "reason": "No changes or evidence in the diff summary indicate checklist execution, updates, or validation artifacts (e.g., edits to `frontend/PREVIEW_VALIDATION_CHECKLIST.md` or `frontend/PRODUCTION_SMOKE_TEST.md`, or other documented verification).",
+      "id": "REQ-99",
+      "requirement": "Expose a query method `isCallerAdmin()` that reflects per-caller admin authorization state granted by `_initializeAccessControlWithSecret`.",
+      "reason": "No `isCallerAdmin()` method is present in `backend/main.mo` in the diff.",
       "evidence": [
-        "file-diff summary shows no checklist/document modifications"
+        "backend/main.mo"
       ]
     }
   ],
-  "hallucinated_features": [
-    {
-      "description": "Treating the backend error \"Admin secret already used\" as a recoverable/expected condition with a user-facing retry flow.",
-      "reason": "REQ-75 explicitly requires repeated calls to `_initializeAccessControlWithSecret` not to fail due to the secret having been used previously (idempotent success behavior). The diff instead adds frontend handling that anticipates and special-cases this failure mode rather than demonstrating it is fixed in the backend.",
-      "evidence": [
-        "frontend/src/hooks/useAdminActor.ts",
-        "frontend/src/pages/AdminPage.tsx",
-        "frontend-file-summaries.txt (AdminPage description mentions recoverable \"Admin secret already used\")"
-      ]
-    },
-    {
-      "description": "Admin actor initialization timeout (30 seconds) and extensive replica rejection detail formatting/expandable error details UI.",
-      "reason": "Not requested explicitly in REQ-75–REQ-78; these are additional UX/error-handling features beyond the stated scope (fix authorization/persistence and restore reliable inquiry visibility and existing actions).",
-      "evidence": [
-        "frontend/src/hooks/useAdminActor.ts",
-        "frontend/src/pages/AdminPage.tsx",
-        "frontend-file-summaries.txt (AdminPage description)"
-      ]
-    }
-  ],
-  "confidence": 0.72,
+  "hallucinated_features": [],
+  "confidence": 0.78,
   "changed_files": [
     "backend/main.mo",
-    "frontend-file-summaries.txt",
-    "frontend/src/hooks/useAdminActor.ts",
-    "frontend/src/hooks/useAdminInquiries.ts",
-    "frontend/src/pages/AdminPage.tsx",
     "project_state.json"
   ]
 }

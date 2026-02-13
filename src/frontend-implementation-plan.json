@@ -1,54 +1,6 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Make /admin inquiry loading reliable after Official Login (frontend hardening + validation)",
-  "requirements": [
-    {
-      "id": "REQ-77",
-      "summary": "Harden the Official Login → /admin flow so admin initialization and inquiry fetching are sequenced reliably and avoid unauthorized/actor-not-available transient failures.",
-      "acceptanceCriteria": [
-        "After a successful Official Login, the app automatically navigates to `/admin` and the page does not display the “Failed to Load Inquiries” unauthorized error shown in the uploaded screenshot.",
-        "If there are existing inquiries, they render in the admin list; if there are none, the normal empty state (“No Inquiries Yet”) renders along with the Refresh/Logout controls.",
-        "Clicking Refresh on `/admin` reliably refetches inquiries without transient “Actor not available” or unauthorized errors when the official session is still valid."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/pages/AdminPage.tsx",
-          "operation": "modify",
-          "description": "Adjust admin dashboard loading/error orchestration so inquiry fetching waits on a ready admin session and refresh behavior uses only safe refetch paths; add a one-time self-healing path for authorization-like inquiry load failures by triggering admin session re-initialization and then refetching, without creating infinite retry loops. Use the authorization component’s error-handling guidance to present authorization failures gracefully; verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/hooks/useAdminInquiries.ts",
-          "operation": "modify",
-          "description": "Tighten refetch ergonomics to prevent “Actor not available” during manual Refresh by ensuring refetch requests are gated on the latest admin actor readiness and token, and by normalizing/reclassifying initialization-vs-authorization errors for consistent UI handling. Use the authorization component’s frontend error-handling guidance for authorization traps; verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/hooks/useAdminActor.ts",
-          "operation": "modify",
-          "description": "Improve admin-session initialization robustness for same-tab Official Login navigation by ensuring initialization state transitions and cache invalidation produce a deterministic ready actor before downstream queries enable, and by keeping retry behavior deterministic for the same caller. Use the authorization component patterns for initialization and authorization failure handling; verify the component's usage instructions before implementing."
-        }
-      ]
-    },
-    {
-      "id": "REQ-78",
-      "summary": "Update and follow the repository Preview/Production checklists for Official Login, admin initialization, and inquiry visibility to validate the fix without regressions.",
-      "acceptanceCriteria": [
-        "Preview validation: follow `frontend/PREVIEW_VALIDATION_CHECKLIST.md` steps relevant to backend canister availability, Official Login, `/admin` initialization, and inquiry visibility; all pass.",
-        "Production smoke test: follow `frontend/PRODUCTION_SMOKE_TEST.md` items relevant to: submit a new inquiry from the public form, Official Login, verify inquiry appears in `/admin`, mark read/unread, delete, and verify list updates; all pass.",
-        "No regression: public inquiry submission continues to work and shows the existing success feedback."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/PREVIEW_VALIDATION_CHECKLIST.md",
-          "operation": "modify",
-          "description": "Expand the preview checklist steps relevant to Official Login, navigation to `/admin`, admin-session initialization completion, inquiry list/empty state rendering, and Refresh behavior (including avoiding transient actor/authorization errors while the session is valid)."
-        },
-        {
-          "path": "frontend/PRODUCTION_SMOKE_TEST.md",
-          "operation": "modify",
-          "description": "Align production smoke tests with the intended post-fix behavior: Official Login should lead to `/admin` with inquiries visible; Refresh should refetch reliably; verify mark read/unread and delete update the list; keep Official Login credentials and the `caffeineAdminToken` storage key/token flow as specified."
-        }
-      ]
-    }
-  ]
+  "title": "Frontend plan: no changes required for backend-only admin bootstrapping fix",
+  "requirements": []
 }

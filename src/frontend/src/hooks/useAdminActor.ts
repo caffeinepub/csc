@@ -4,20 +4,20 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { type backendInterface } from '../backend';
 import { createActorWithConfig } from '../config';
 import { useEffect, useRef } from 'react';
-import { extractReplicaRejectionDetails, isBackendInitializationBug, isAdminSecretAlreadyUsedError } from '../utils/adminError';
+import { extractReplicaRejectionDetails, isAdminSecretAlreadyUsedError, isReplicaRejectionError } from '../utils/adminError';
 
 /**
  * Wrapper actor hook specifically for admin operations.
  * Creates an actor (anonymous or Internet Identity-backed) and invokes
- * the backend access-control initialization with the admin secret token
- * before returning the actor.
+ * the backend access-control initialization with the admin secret token,
+ * then explicitly verifies admin status before returning the actor.
  * 
  * Exposes explicit states: initializing, ready, and failed.
  * Provides deterministic retry that recreates the actor and re-runs initialization.
  * Includes initialization timeout to prevent indefinite hangs.
- * Detects and handles the known backend initialization bug gracefully.
- * Treats "Admin secret already used" as a recoverable error that allows retry.
- * Ensures actor is fully ready before downstream queries enable.
+ * Treats "Admin secret already used" as expected and non-blocking (with auto-retry).
+ * Implements bounded retry with exponential backoff for replica rejection errors.
+ * Ensures actor is fully ready and verified as admin before downstream queries enable.
  */
 export function useAdminActor() {
   const { identity } = useInternetIdentity();
@@ -53,7 +53,7 @@ export function useAdminActor() {
       // Create initialization timeout promise (30 seconds)
       const timeoutPromise = new Promise<never>((_, reject) => {
         setTimeout(() => {
-          reject(new Error('Admin session initialization timed out after 30 seconds. The backend service may be unavailable.'));
+          reject(new Error('Admin session initialization timed out after 30 seconds. The backend service may be unavailable or still starting up. Please wait a moment and click Retry.'));
         }, 30000);
       });
 
@@ -77,54 +77,42 @@ export function useAdminActor() {
         // Initialize access control with admin token
         try {
           await actor._initializeAccessControlWithSecret(adminToken);
+          console.log('Admin access control initialized successfully');
         } catch (error) {
           console.error('Failed to initialize access control:', error);
           
           // Check if this is the "Admin secret already used" error - treat as recoverable
           if (isAdminSecretAlreadyUsedError(error)) {
-            const recoverableError = new Error('Admin secret already used to initialize the system. This is expected after the first initialization. Click Retry to proceed.');
-            (recoverableError as any).isRecoverable = true;
-            (recoverableError as any).originalError = error;
-            throw recoverableError;
-          }
+            console.log('Admin secret already used - this is expected after first initialization. Proceeding with verification.');
+            // Don't throw - this is expected, continue to verification
+          } else {
+            // Enrich replica rejection errors with structured details
+            const replicaDetails = extractReplicaRejectionDetails(error);
+            if (replicaDetails) {
+              const enrichedError = error instanceof Error ? error : new Error(String(error));
+              (enrichedError as any).replicaDetails = replicaDetails;
+              throw enrichedError;
+            }
 
-          // Check if this is the backend initialization bug
-          if (isBackendInitializationBug(error)) {
-            const bugError = new Error('Backend initialization bug detected: The backend accepted your admin credentials but failed to grant admin privileges. This requires a backend code fix.');
-            (bugError as any).isBackendBug = true;
-            (bugError as any).originalError = error;
-            throw bugError;
+            // Re-throw other errors as-is
+            throw error;
           }
-
-          // Enrich replica rejection errors with structured details
-          const replicaDetails = extractReplicaRejectionDetails(error);
-          if (replicaDetails) {
-            const enrichedError = error instanceof Error ? error : new Error(String(error));
-            (enrichedError as any).replicaDetails = replicaDetails;
-            throw enrichedError;
-          }
-
-          // Re-throw other errors as-is
-          throw error;
         }
 
-        // Verify admin status after initialization to catch backend bugs early
+        // CRITICAL: Explicitly verify admin status after initialization
+        // This prevents the infinite loop by catching non-admin callers early
         try {
           const isAdmin = await actor.isCallerAdmin();
           if (!isAdmin) {
-            const verificationError = new Error('Admin verification failed: Backend did not grant admin privileges after initialization. This indicates a backend code issue.');
-            (verificationError as any).isBackendBug = true;
-            throw verificationError;
+            throw new Error('Unauthorized: Current session does not have admin privileges. The admin role may have been assigned to a different principal. Please contact the system administrator.');
           }
-        } catch (verificationError) {
-          // If verification itself fails, it might be a transient error or backend issue
-          console.error('Admin verification check failed:', verificationError);
-          // Only throw if it's not the "already used" error (which we handle above)
-          if (!isAdminSecretAlreadyUsedError(verificationError)) {
-            throw verificationError;
-          }
+          console.log('Admin status verified successfully');
+        } catch (error) {
+          console.error('Admin verification failed:', error);
+          throw error;
         }
 
+        // Return the verified admin actor
         return actor;
       })();
 
@@ -132,7 +120,25 @@ export function useAdminActor() {
       return Promise.race([initPromise, timeoutPromise]);
     },
     enabled: !!adminToken,
-    retry: false, // Disable automatic retry; we provide explicit retry via retry()
+    retry: (failureCount, error) => {
+      // Auto-retry with bounded attempts for recoverable errors
+      if (isAdminSecretAlreadyUsedError(error)) {
+        // Retry once for "admin secret already used"
+        return failureCount < 1;
+      }
+      
+      if (isReplicaRejectionError(error)) {
+        // Retry up to 3 times for replica rejections (canister stopped, unavailable, etc.)
+        return failureCount < 3;
+      }
+      
+      // Don't auto-retry other errors - user must explicitly retry
+      return false;
+    },
+    retryDelay: (attemptIndex) => {
+      // Exponential backoff: 2s, 4s, 8s
+      return Math.min(1000 * Math.pow(2, attemptIndex + 1), 8000);
+    },
     staleTime: Infinity, // Actor should remain fresh until explicitly invalidated
     gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes after unmount
   });

@@ -74,20 +74,9 @@ export function isAuthorizationError(error: unknown): boolean {
     message.includes('permission denied') ||
     message.includes('access denied') ||
     message.includes('system has not been initialized') ||
-    message.includes('only official admin')
-  );
-}
-
-/**
- * Detects if the error is specifically the "Only admins can assign user roles" error
- * that occurs when the backend's initializeAccessControlWithSecret doesn't grant admin role.
- * This is now less likely after the backend fix, but kept for backwards compatibility.
- */
-export function isBackendInitializationBug(error: unknown): boolean {
-  const message = getErrorMessage(error).toLowerCase();
-  return (
-    message.includes('only admins can assign user roles') ||
-    (message.includes('unauthorized') && message.includes('assign') && message.includes('role'))
+    message.includes('only official admin') ||
+    message.includes('does not have admin privileges') ||
+    message.includes('admin role may have been assigned')
   );
 }
 
@@ -118,7 +107,6 @@ export function isReplicaRejectionError(error: unknown): boolean {
 export function isRecoverableError(error: unknown): boolean {
   return (
     isAdminSecretAlreadyUsedError(error) ||
-    isBackendInitializationBug(error) ||
     isReplicaRejectionError(error) ||
     getErrorMessage(error).toLowerCase().includes('timed out')
   );
@@ -193,15 +181,34 @@ export function extractReplicaRejectionDetails(error: unknown): ReplicaRejection
 }
 
 /**
- * Formats replica rejection details into a user-friendly message
+ * Formats replica rejection details into a user-friendly, actionable message
+ * that includes reject code and request ID when available.
  */
 export function formatReplicaRejectionMessage(details: ReplicaRejectionDetails): string {
   let message = details.reason;
   
   if (details.isCanisterStopped) {
     message += '. The backend canister needs to be started.';
+  } else {
+    message += '. The service may be temporarily unavailable.';
   }
-  
+
+  // Add actionable guidance
+  message += ' Please wait a moment and click Retry to reconnect.';
+
+  // Append technical details inline for transparency
+  const technicalParts: string[] = [];
+  if (details.rejectCode !== undefined) {
+    technicalParts.push(`Reject Code: ${details.rejectCode}`);
+  }
+  if (details.requestId) {
+    technicalParts.push(`Request ID: ${details.requestId}`);
+  }
+
+  if (technicalParts.length > 0) {
+    message += ` (${technicalParts.join(', ')})`;
+  }
+
   return message;
 }
 

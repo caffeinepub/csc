@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 49,
+  "projectStateVersion": 61,
   "summary": "Website for “वैष्णवी ई-मित्र & CSC केन्द्र” (E-Mitra & CSC centre) in कोटा (माम), करौली, showcasing services/contact/inquiry form, with an “Official Login” (custom username/password) that now uses User ID K107172621 (password unchanged) and should automatically open the admin/management dashboard after login, with additional admin features requested.",
   "architectural_notes": [
     "Site content/language: Hindi promotional content for Vaishnavi E-Mitra & CSC centre.",
@@ -22,7 +22,9 @@
     "Preview: After Official Login, /admin fails immediately with “Admin Session Initialization Failed”; assistant suspects backend canister is stopped causing initialization failure.",
     "Preview: User reports no inquiries (old or new) are visible; must restore full inquiry list visibility after fixing Admin Session initialization failure.",
     "In both Preview and Live (Production), immediately after successful Official Login (K107172621 / Karauli#34), /admin shows “Admin Session Initialization Failed” along with “Unauthorized: Only admins can assign user roles”; occurs every time.",
-    "User confirms that in BOTH Live (Production) and Preview, they still cannot see any old or new inquiries in the Admin Dashboard (inquiries list remains missing after latest deployment)."
+    "User confirms that in BOTH Live (Production) and Preview, they still cannot see any old or new inquiries in the Admin Dashboard (inquiries list remains missing after latest deployment).",
+    "Preview build shows error indicating backend service/canister is stopped; when backend canister is not running, admin session initialization cannot succeed and login to /admin will fail.",
+    "Root cause identified for infinite “Initializing Admin Session” loop/Unauthorized errors: backend access-control assigns admin only to the first qualifying principal (`adminAssigned` global boolean); later callers are forced to `#user`, so admin APIs trap with Unauthorized and frontend keeps retrying."
   ],
   "isFixRequest": true,
   "existing_features": [
@@ -545,6 +547,102 @@
         "REQ-77"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-ensure-the-admin-inquiry-list-loads-automatically-right-after-official-login-in-both-preview-and-production-live-without-showing-any-unauthorized-or-admin-session-initialization-error-states-when-valid-credentials-and-secret-are-used",
+      "title": "Ensure the admin inquiry list loads automatically right after Official Login in both Preview and Production (Live) without showing any Unauthorized or Admin Session Initialization error states when valid credentials and secret are used.",
+      "reqIds": [
+        "REQ-80"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-publish-the-current-fix-to-both-preview-and-production-live-so-that-the-backend-canister-does-not-remain-in-a-stopped-state-after-deployment-and-the-admin-dashboard-can-initialize-successfully",
+      "title": "Publish the current fix to BOTH Preview and Production (Live) so that the backend canister does not remain in a stopped state after deployment, and the Admin Dashboard can initialize successfully.",
+      "reqIds": [
+        "REQ-82"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-or-update-repository-documentation-to-include-an-internal-verification-step-for-both-preview-and-production-that-the-backend-canister-is-running-before-testing-official-login-and-admin-and-keep-all-checklist-wording-in-english",
+      "title": "Add or update repository documentation to include an internal verification step for BOTH Preview and Production that the backend canister is running before testing Official Login and /admin, and keep all checklist wording in English.",
+      "reqIds": [
+        "REQ-83"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-after-deploying-to-both-preview-and-production-run-the-existing-repository-checklists-for-the-critical-path-and-confirm-that-official-login-user-id-k107172621-password-karauli-34-navigates-to-admin-and-the-inquiry-list-loads-or-shows-the-normal-empty-state-not-an-initialization-error",
+      "title": "After deploying to BOTH Preview and Production, run the existing repository checklists for the critical path and confirm that Official Login (User ID: K107172621, Password: Karauli#34) navigates to /admin and the inquiry list loads or shows the normal empty state (not an initialization error).",
+      "reqIds": [
+        "REQ-84"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-html-document-title-to-exactly-csc",
+      "title": "Update the HTML document title to exactly: “वैष्णवी ई-मित्र & CSC सेवा केंद्र - आपका डिजिटल साथी 🌐”.",
+      "reqIds": [
+        "REQ-85"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fully-replace-the-existing-homepage-marketing-copy-hero-services-content-with-the-user-provided-new-hindi-content-including-the-new-tagline-line-the-intro-welcome-message-and-the-mission-vision-text",
+      "title": "Fully replace the existing homepage marketing copy (Hero + Services content) with the user-provided new Hindi content, including: the new tagline line “(कोटा (माम), करौली का सबसे विश्वसनीय और हाई-टेक सर्विस सेंटर)”, the Intro/Welcome message, and the Mission/Vision text.",
+      "reqIds": [
+        "REQ-86"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-replace-the-existing-services-section-content-with-the-user-provided-detailed-services-directory-and-present-it-as-6-primary-departments-with-their-detailed-bullet-lists-e-mitra-revenue-csc-central-govt-banking-finance-student-education-jobs-utility-bill-payment-travel-digital-studio-other",
+      "title": "Replace the existing Services section content with the user-provided “Detailed Services Directory” and present it as 6 primary departments with their detailed bullet lists (E‑Mitra & Revenue, CSC & Central Govt, Banking & Finance, Student/Education/Jobs, Utility/Bill Payment/Travel, Digital Studio/Other).",
+      "reqIds": [
+        "REQ-87"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-dedicated-faq-section-to-the-homepage-and-render-the-four-user-provided-faq-entries-q1-q4-verbatim-in-hindi",
+      "title": "Add a dedicated FAQ section to the homepage and render the four user-provided FAQ entries (Q1–Q4) verbatim in Hindi.",
+      "reqIds": [
+        "REQ-88"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-contact-address-area-to-reflect-the-full-user-provided-address-block-email-address-and-opening-hours-and-ensure-these-details-are-visible-on-the-homepage-without-requiring-admin-access",
+      "title": "Update the Contact/Address area to reflect the full user-provided address block, email address, and opening hours, and ensure these details are visible on the homepage without requiring admin access.",
+      "reqIds": [
+        "REQ-89"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-redesign-the-homepage-layout-to-accommodate-the-significantly-longer-content-intro-mission-vision-detailed-services-faq-contact-opening-hours-with-improved-readability-and-navigation-while-keeping-the-existing-inquiry-form-section-functional-and-visually-integrated",
+      "title": "Redesign the homepage layout to accommodate the significantly longer content (intro + mission/vision + detailed services + FAQ + contact + opening hours) with improved readability and navigation, while keeping the existing inquiry form section functional and visually integrated.",
+      "reqIds": [
+        "REQ-90"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-repository-documentation-checklists-to-include-an-explicit-actionable-step-to-verify-the-backend-canister-is-running-immediately-after-deployment-preview-and-production-before-testing-official-login-and-admin-keeping-all-checklist-wording-in-english",
+      "title": "Update repository documentation checklists to include an explicit, actionable step to verify the backend canister is RUNNING immediately after deployment (Preview and Production) before testing Official Login and /admin, keeping all checklist wording in English.",
+      "reqIds": [
+        "REQ-94"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-the-official-login-flow-user-id-k107172621-password-karauli-34-can-initialize-an-admin-session-using-the-existing-session-token-storage-key-caffeineadmintoken-with-value-admin-secret-token-2024-and-then-successfully-load-the-inquiry-list-on-admin-without-unauthorized-errors",
+      "title": "Ensure the Official Login flow (User ID `K107172621`, Password `Karauli#34`) can initialize an admin session using the existing session token storage key `caffeineAdminToken` with value `admin-secret-token-2024`, and then successfully load the inquiry list on `/admin` without Unauthorized errors.",
+      "reqIds": [
+        "REQ-97"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -701,6 +799,84 @@
       "summary": "Build and validate the fix using the repository checklists for Preview and Production flows relevant to Official Login, admin session initialization, and inquiry visibility (existing + newly submitted).",
       "reqIds": [
         "REQ-78"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-40",
+      "summary": "Fix backend admin-session bootstrapping so that calling `_initializeAccessControlWithSecret(\"admin-secret-token-2024\")` deterministically authorizes the *current caller* as an admin for subsequent admin APIs, without attempting any privileged role-assignment path that can fail for non-admin callers and without using any single global “already initialized/secret already used” flag that blocks later sessions.",
+      "reqIds": [
+        "REQ-79"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-42",
+      "summary": "Publish the fix so it is applied to both Preview and Production (Live), then validate that the Official Login → `/admin` flow consistently initializes and loads the inquiry list without Unauthorized/Initialization errors.",
+      "reqIds": [
+        "REQ-81"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-43",
+      "summary": "Fully replace the homepage (Home/Services sections) with the user-provided new Hindi content, including updating the page title/tagline, adding the detailed services directory/FAQ/contact/opening hours, and redesigning the homepage layout accordingly.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-44",
+      "summary": "Investigate and fix the root cause that leaves the backend canister in a STOPPED state after preview/live deployment, and apply a code-level fix so the backend canister remains RUNNING after install/upgrade.",
+      "reqIds": [
+        "REQ-91"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-45",
+      "summary": "Persist inquiry submissions across canister upgrades by migrating the current in-memory inquiry store and nextId counter to upgrade-safe stable storage, ensuring that inquiries submitted before a deployment are still returned by getAllInquiries after the deployment.",
+      "reqIds": [
+        "REQ-92"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-46",
+      "summary": "Add a lightweight backend health endpoint that can be called without admin privileges to confirm the backend canister is responsive (e.g., returns a constant status string and the current canister time).",
+      "reqIds": [
+        "REQ-93"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-47",
+      "summary": "Update backend authorization so that calling `_initializeAccessControlWithSecret(userSecret)` deterministically authorizes the *current caller* as an admin when (and only when) `userSecret` matches the backend environment secret `CAFFEINE_ADMIN_TOKEN`, without relying on any single global “first admin only” flag.",
+      "reqIds": [
+        "REQ-95"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-48",
+      "summary": "Make backend role/permission checks safe and non-looping by ensuring admin checks do not trap for unregistered callers; instead, unregistered callers must be treated as non-admin/guest for authorization decisions.",
+      "reqIds": [
+        "REQ-96"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-49",
+      "summary": "Update backend admin-session bootstrapping so that calling `_initializeAccessControlWithSecret(secret)` with the correct secret `admin-secret-token-2024` ALWAYS grants admin privileges to the current caller (the principal making the call), regardless of whether another principal was previously granted admin.",
+      "reqIds": [
+        "REQ-98"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-50",
+      "summary": "Ensure the backend exposes a query method `isCallerAdmin()` that returns whether the current caller is authorized as admin, and that its result reflects the updated per-caller admin authorization state granted by `_initializeAccessControlWithSecret`.",
+      "reqIds": [
+        "REQ-99"
       ],
       "status": "pending"
     }

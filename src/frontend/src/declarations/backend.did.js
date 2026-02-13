@@ -39,6 +39,7 @@ export const idlService = IDL.Service({
   'getAllInquiries' : IDL.Func([], [IDL.Vec(Inquiry)], ['query']),
   'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
+  'getHealthStatus' : IDL.Func([], [IDL.Text], ['query']),
   'getUserProfile' : IDL.Func(
       [IDL.Principal],
       [IDL.Opt(UserProfile)],
@@ -95,6 +96,7 @@ export const idlFactory = ({ IDL }) => {
     'getAllInquiries' : IDL.Func([], [IDL.Vec(Inquiry)], ['query']),
     'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
     'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
+    'getHealthStatus' : IDL.Func([], [IDL.Text], ['query']),
     'getUserProfile' : IDL.Func(
         [IDL.Principal],
         [IDL.Opt(UserProfile)],

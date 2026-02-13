@@ -14,9 +14,10 @@ export default function Footer() {
           <div>
             <h3 className="font-bold text-lg mb-3">{siteContent.business.name}</h3>
             <div className="space-y-2 text-sm text-muted-foreground">
-              <p>📍 {siteContent.business.location}</p>
+              <p>📍 {siteContent.business.fullAddress}</p>
               <p>👨‍💼 संचालक: {siteContent.business.operator}</p>
               <p>📞 {siteContent.business.phone}</p>
+              <p>📧 {siteContent.business.email}</p>
             </div>
           </div>
 
@@ -26,9 +27,10 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="border-t border-border pt-6 text-center text-sm text-muted-foreground">
-          <p>© {currentYear} {siteContent.business.name}. सर्वाधिकार सुरक्षित।</p>
-          <p className="mt-2 flex items-center justify-center gap-1">
+        <div className="border-t border-border pt-6 text-center text-sm text-muted-foreground space-y-2">
+          <p>© {currentYear} {siteContent.business.name}. सर्वाधिकार सुरक्षित.</p>
+          <p className="text-xs">{siteContent.footer.copyright}</p>
+          <p className="flex items-center justify-center gap-1">
             Built with <Heart className="h-4 w-4 text-red-500 fill-red-500" /> using{' '}
             <a
               href={`https://caffeine.ai/?utm_source=Caffeine-footer&utm_medium=referral&utm_content=${appIdentifier}`}

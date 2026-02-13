@@ -14,30 +14,33 @@ export default function HeroSection() {
   };
 
   return (
-    <section id="home" className="relative min-h-[600px] md:min-h-[700px] flex items-center pt-16 md:pt-20">
+    <section id="home" className="relative min-h-[700px] md:min-h-[800px] flex items-center pt-16 md:pt-20">
       <div className="absolute inset-0 overflow-hidden">
         <img
           src="/assets/generated/vaishnavi-hero.dim_1600x900.png"
-          alt="वैष्णवी ई-मित्र & CSC केन्द्र"
+          alt="वैष्णवी ई-मित्र & CSC सेवा केंद्र"
           className="w-full h-full object-cover opacity-20"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/60 to-background" />
       </div>
 
       <div className="container mx-auto px-4 relative z-10">
-        <div className="max-w-3xl mx-auto text-center space-y-6 py-12 md:py-16">
-          <div className="inline-block">
-            <div className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-2">
-              ✨ {siteContent.business.name} ✨
-            </div>
-            <div className="text-lg md:text-xl text-primary font-semibold mt-4">
-              🇮🇳 {siteContent.business.tagline} ✅
-            </div>
+        <div className="max-w-4xl mx-auto text-center space-y-8 py-12 md:py-20">
+          <div className="space-y-4">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground leading-tight">
+              🌐 {siteContent.business.name} 🌐
+            </h1>
+            <p className="text-xl md:text-2xl text-primary font-semibold">
+              {siteContent.business.tagline}
+            </p>
+            <p className="text-base md:text-lg text-muted-foreground font-medium">
+              ({siteContent.business.subtitle})
+            </p>
           </div>
 
-          <div className="text-base md:text-lg text-muted-foreground leading-relaxed max-w-2xl mx-auto">
-            <p className="mb-4">👋 {siteContent.hero.greeting}</p>
-            <p>🙏 {siteContent.hero.description}</p>
+          <div className="space-y-6 text-base md:text-lg text-muted-foreground leading-relaxed max-w-3xl mx-auto">
+            <p className="font-semibold text-foreground">👋 {siteContent.hero.greeting}</p>
+            <p>{siteContent.hero.intro}</p>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-6">

@@ -1,91 +1,55 @@
 {
   "kind": "build_request",
-  "title": "Fix Official Login admin authorization so /admin can load inquiries reliably",
+  "title": "Make admin secret deterministically grant admin privileges to any caller",
   "priority": "high",
   "requirements": [
     {
-      "id": "REQ-75",
-      "text": "Fix backend admin bootstrapping so that calling `_initializeAccessControlWithSecret(\"admin-secret-token-2024\")` deterministically grants admin authorization to the *current caller* for subsequent admin APIs, without requiring any privileged role-assignment path that can fail for non-admin callers, and without using a single global “already initialized” flag that blocks later sessions.",
+      "id": "REQ-98",
+      "text": "Update backend admin-session bootstrapping so that calling `_initializeAccessControlWithSecret(secret)` with the correct secret `admin-secret-token-2024` ALWAYS grants admin privileges to the current caller (the principal making the call), regardless of whether another principal was previously granted admin.",
       "target": "backend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "recent-messages"
         ],
         "quotes": [
-          "हां बिल्ड शुरू करो"
+          "YES, MAKE SECRET ALWAYS GIVE ADMIN"
         ]
       },
       "acceptanceCriteria": [
-        "After Official Login (User ID `K107172621`, Password `Karauli#34`) the frontend calls `_initializeAccessControlWithSecret('admin-secret-token-2024')` and that call completes successfully.",
-        "Immediately after initialization, `getAllInquiries`, `setInquiryReadStatus`, and `deleteInquiry` succeed for the same caller within the same browser tab session (no traps with “Unauthorized: Only admins can perform this action” or “Only admins can assign user roles”).",
-        "Repeated calls to `_initializeAccessControlWithSecret('admin-secret-token-2024')` from the same caller do not fail due to the secret having been used previously; they behave idempotently for that caller (either no-op or re-affirm admin status).",
-        "Admin authorization is scoped per-caller (e.g., by principal/session mapping in canister state), not via a single global boolean that prevents later logins from being authorized."
+        "Given any principal P1, when P1 calls `_initializeAccessControlWithSecret(\"admin-secret-token-2024\")`, then subsequent calls by P1 to admin-gated APIs (at minimum `getAllInquiries`, `setInquiryReadStatus`, `deleteInquiry`) succeed without Unauthorized errors.",
+        "Given a different principal P2 (not equal to P1), when P2 calls `_initializeAccessControlWithSecret(\"admin-secret-token-2024\")`, then subsequent calls by P2 to admin-gated APIs also succeed (i.e., admin is not restricted to the first principal).",
+        "The initialization must not rely on or enforce a single global 'already initialized/admin assigned' flag that prevents later callers from becoming admin when using the correct secret.",
+        "If the secret is incorrect, `_initializeAccessControlWithSecret` must not grant admin privileges and admin-gated APIs must continue to fail with an Unauthorized error."
       ]
     },
     {
-      "id": "REQ-76",
-      "text": "Persist inquiry submissions across canister upgrades so that previously submitted inquiries are not lost after publishing a new version; ensure `submitInquiry` writes to upgrade-safe storage and `getAllInquiries` returns the persisted dataset for authorized admin callers.",
+      "id": "REQ-99",
+      "text": "Ensure the backend exposes a query method `isCallerAdmin()` that returns whether the current caller is authorized as admin, and that its result reflects the updated per-caller admin authorization state granted by `_initializeAccessControlWithSecret`.",
       "target": "backend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "recent-messages"
         ],
         "quotes": [
-          "हां बिल्ड शुरू करो"
+          "YES, MAKE SECRET ALWAYS GIVE ADMIN"
         ]
       },
       "acceptanceCriteria": [
-        "Inquiries created via `submitInquiry` remain available after a canister upgrade/redeploy (upgrade-safe state).",
-        "`nextId` continues correctly after upgrade (no ID collisions; IDs remain unique and increasing).",
-        "If a state migration is required to preserve existing data, implement it using `backend/migration.mo` under the project’s conditional migration policy; otherwise do not introduce unnecessary migration logic."
-      ]
-    },
-    {
-      "id": "REQ-77",
-      "text": "Ensure the admin dashboard user experience matches the screenshot scenario but succeeds: after Official Login, navigating to `/admin` loads the inquiry list instead of showing “Failed to Load Inquiries: Unauthorized: Only admins can perform this action.”",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "हां बिल्ड शुरू करो"
-        ]
-      },
-      "acceptanceCriteria": [
-        "After a successful Official Login, the app automatically navigates to `/admin` and the page does not display the “Failed to Load Inquiries” unauthorized error shown in the uploaded screenshot.",
-        "If there are existing inquiries, they render in the admin list; if there are none, the normal empty state (“No Inquiries Yet”) renders along with the Refresh/Logout controls.",
-        "Clicking Refresh on `/admin` reliably refetches inquiries without transient “Actor not available” or unauthorized errors when the official session is still valid."
-      ]
-    },
-    {
-      "id": "REQ-78",
-      "text": "Build and validate the fix using the repository checklists for Preview and Production flows relevant to Official Login, admin session initialization, and inquiry visibility (existing + newly submitted).",
-      "target": "both",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "हां बिल्ड शुरू करो"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Preview validation: follow `frontend/PREVIEW_VALIDATION_CHECKLIST.md` steps relevant to backend canister availability, Official Login, `/admin` initialization, and inquiry visibility; all pass.",
-        "Production smoke test: follow `frontend/PRODUCTION_SMOKE_TEST.md` items relevant to: submit a new inquiry from the public form, Official Login, verify inquiry appears in `/admin`, mark read/unread, delete, and verify list updates; all pass.",
-        "No regression: public inquiry submission continues to work and shows the existing success feedback."
+        "After calling `_initializeAccessControlWithSecret(\"admin-secret-token-2024\")`, `isCallerAdmin()` returns `true` for that caller.",
+        "Without calling `_initializeAccessControlWithSecret` (or after calling it with a wrong secret), `isCallerAdmin()` returns `false` for that caller.",
+        "`useAdminActor` (frontend) can successfully call `isCallerAdmin()` without backend traps, and the admin dashboard no longer shows “Admin Session Initialization Failed” due to missing admin privileges when the correct secret is used."
       ]
     }
   ],
   "constraints": [
-    "Backend must remain a single Motoko actor with all logic in `backend/main.mo`.",
-    "Do not edit any files under `frontend/src/components/ui` or any frontend paths listed as immutable in SYSTEM_CONTEXT.",
-    "Keep Official Login credentials exact: User ID `K107172621`, Password `Karauli#34`.",
-    "Keep using the existing sessionStorage key `caffeineAdminToken` with token value `admin-secret-token-2024` for the Official Login admin-token flow."
+    "Backend must remain a single Motoko actor with logic in `backend/main.mo` (respect single-actor architecture).",
+    "Do not change the Official Login credential values or admin secret token value; keep token exactly `admin-secret-token-2024` and the sessionStorage key exactly `caffeineAdminToken`.",
+    "Use English for any user-facing text."
   ],
   "nonGoals": [
-    "Adding new authentication providers (Internet Identity-only or third-party auth) beyond the existing Official Login flow.",
-    "Adding new admin features beyond fixing authorization/persistence and restoring reliable inquiry visibility and existing actions."
+    "Do not implement new authentication methods (e.g., third-party auth, Internet Identity changes) as part of this change.",
+    "Do not redesign the admin dashboard UI beyond what is necessary to support the corrected backend authorization behavior.",
+    "Do not change inquiry persistence/migration behavior in this request unless required to implement the admin-authorization fix."
   ],
   "imageRequirements": {
     "required": [],

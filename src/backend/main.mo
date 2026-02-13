@@ -1,13 +1,11 @@
 import Map "mo:core/Map";
 import Time "mo:core/Time";
 import Array "mo:core/Array";
-import Iter "mo:core/Iter";
 import Principal "mo:core/Principal";
 import Runtime "mo:core/Runtime";
 import Text "mo:core/Text";
-
-import AccessControl "authorization/access-control";
 import MixinAuthorization "authorization/MixinAuthorization";
+import AccessControl "authorization/access-control";
 
 actor {
   type InquiryType = {
@@ -33,31 +31,10 @@ actor {
   };
 
   let accessControlState = AccessControl.initState();
-  let inquiries = Map.empty<Nat, Inquiry>();
-  var nextId = 0;
   let userProfiles = Map.empty<Principal, UserProfile>();
+  var inquiries = Map.empty<Nat, Inquiry>();
+  var nextId = 0;
   include MixinAuthorization(accessControlState);
-
-  public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can access profiles");
-    };
-    userProfiles.get(caller);
-  };
-
-  public query ({ caller }) func getUserProfile(user : Principal) : async ?UserProfile {
-    if (caller != user and not (AccessControl.isAdmin(accessControlState, caller))) {
-      Runtime.trap("Unauthorized: Can only view your own profile");
-    };
-    userProfiles.get(user);
-  };
-
-  public shared ({ caller }) func saveCallerUserProfile(profile : UserProfile) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can save profiles");
-    };
-    userProfiles.add(caller, profile);
-  };
 
   public shared ({ caller }) func submitInquiry(
     inquiryType : InquiryType,
@@ -86,14 +63,14 @@ actor {
   };
 
   public query ({ caller }) func getAllInquiries() : async [Inquiry] {
-    if (not (AccessControl.isAdmin(accessControlState, caller))) {
+    if (not isAdminSafe(caller)) {
       Runtime.trap("Unauthorized: Only admins can perform this action");
     };
     inquiries.values().toArray();
   };
 
   public shared ({ caller }) func setInquiryReadStatus(inquiryId : Nat, read : Bool) : async () {
-    if (not (AccessControl.isAdmin(accessControlState, caller))) {
+    if (not isAdminSafe(caller)) {
       Runtime.trap("Unauthorized: Only admins can perform this action");
     };
     switch (inquiries.get(inquiryId)) {
@@ -106,7 +83,7 @@ actor {
   };
 
   public shared ({ caller }) func deleteInquiry(inquiryId : Nat) : async () {
-    if (not (AccessControl.isAdmin(accessControlState, caller))) {
+    if (not isAdminSafe(caller)) {
       Runtime.trap("Unauthorized: Only admins can perform this action");
     };
     switch (inquiries.get(inquiryId)) {
@@ -114,6 +91,40 @@ actor {
       case (?_inquiry) {
         inquiries.remove(inquiryId);
       };
+    };
+  };
+
+  public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can access profiles");
+    };
+    userProfiles.get(caller);
+  };
+
+  public query ({ caller }) func getUserProfile(user : Principal) : async ?UserProfile {
+    if (caller != user and not isAdminSafe(caller)) {
+      Runtime.trap("Unauthorized: Can only view your own profile");
+    };
+    userProfiles.get(user);
+  };
+
+  public shared ({ caller }) func saveCallerUserProfile(profile : UserProfile) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can save profiles");
+    };
+    userProfiles.add(caller, profile);
+  };
+
+  public query ({ caller }) func getHealthStatus() : async Text {
+    ignore caller;
+    ignore Time.now();
+    "healthy";
+  };
+
+  func isAdminSafe(caller : Principal) : Bool {
+    switch (AccessControl.getUserRole(accessControlState, caller)) {
+      case (#admin) { true };
+      case (_) { false };
     };
   };
 };

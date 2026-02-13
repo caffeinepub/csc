@@ -32,8 +32,9 @@ export default function NavigationBar() {
 
   const navLinks = [
     { id: 'home', label: 'होम' },
+    { id: 'mission-vision', label: 'मिशन' },
     { id: 'services', label: 'सेवाएँ' },
-    { id: 'why-choose-us', label: 'हमें क्यों चुनें' },
+    { id: 'faq', label: 'FAQ' },
     { id: 'inquiry-form', label: 'संपर्क करें' },
     { id: 'contact', label: 'पता' },
   ];

@@ -3,7 +3,7 @@ import InquiryForm from '../InquiryForm';
 
 export default function FormSection() {
   return (
-    <section id="inquiry-form" className="py-16 md:py-24 bg-muted/30">
+    <section id="inquiry-form" className="py-16 md:py-24">
       <div className="container mx-auto px-4">
         <div className="max-w-2xl mx-auto">
           <Card className="shadow-xl">

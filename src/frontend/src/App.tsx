@@ -4,8 +4,9 @@ import { navigateTo } from './utils/navigation';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import NavigationBar from './components/NavigationBar';
 import HeroSection from './components/sections/HeroSection';
+import MissionVisionSection from './components/sections/MissionVisionSection';
 import ServicesSection from './components/sections/ServicesSection';
-import WhyChooseUsSection from './components/sections/WhyChooseUsSection';
+import FAQSection from './components/sections/FAQSection';
 import FormSection from './components/sections/FormSection';
 import ContactSection from './components/sections/ContactSection';
 import Footer from './components/Footer';
@@ -62,8 +63,9 @@ function AppContent() {
       <NavigationBar />
       <main>
         <HeroSection />
+        <MissionVisionSection />
         <ServicesSection />
-        <WhyChooseUsSection />
+        <FAQSection />
         <FormSection />
         <ContactSection />
       </main>

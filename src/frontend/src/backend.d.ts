@@ -38,6 +38,7 @@ export interface backendInterface {
     getAllInquiries(): Promise<Array<Inquiry>>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
+    getHealthStatus(): Promise<string>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     isCallerAdmin(): Promise<boolean>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
