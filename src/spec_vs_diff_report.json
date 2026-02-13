@@ -1,55 +1,62 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-13T04:36:37.262Z",
-  "summary": "Implemented new frontend admin-session initialization flow with explicit initializing/failed states, timeout, replica rejection detail extraction, and a Retry path; added a preview checklist doc stub; added a backend migration module and wired an upgrade migration hook. However, backend inquiry persistence across upgrades is not evidenced (no stable storage shown), and the preview checklist appears incomplete. Also, additional admin capabilities (bulk export/actions and a production smoke test doc) appear introduced beyond the stated non-goals.",
+  "generatedAt": "2026-02-13T05:37:52.525Z",
+  "summary": "Diff updates frontend admin initialization/inquiry fetching to be more robust (init states, retry/self-heal, timeout, better error handling) and shows backend inquiry APIs guarded by admin checks. However, the core backend requirements for deterministic per-caller admin bootstrapping and upgrade-safe inquiry persistence are not evidenced in the diff summary, and no validation/checklist updates are shown.",
   "missing_requirements": [
     {
-      "id": "REQ-63",
-      "requirement": "Persist inquiries across backend canister upgrades so inquiries are not lost when publishing new preview versions; ensure `submitInquiry` writes to upgrade-safe storage and `getAllInquiries` returns the persisted dataset for authorized admin callers.",
-      "reason": "The diff shows `nextId` as a regular `var` and `inquiries` as a non-stable `Map.empty` without any visible `stable` variables or explicit `preupgrade/postupgrade` persistence logic. The added `backend/migration.mo` currently returns `old` unchanged and does not demonstrate storing/restoring inquiries across upgrades.",
+      "id": "REQ-75",
+      "requirement": "Fix backend admin bootstrapping so `_initializeAccessControlWithSecret(\"admin-secret-token-2024\")` deterministically grants admin authorization to the current caller, is idempotent per-caller, and is not blocked by a global already-initialized flag.",
+      "reason": "The diff summary for `backend/main.mo` does not show any implementation or changes to `_initializeAccessControlWithSecret`, nor any per-caller admin authorization mapping/state changes. It only shows admin-gated inquiry methods calling `AccessControl.isAdmin` and inclusion of `MixinAuthorization(accessControlState)` without demonstrating the required bootstrapping behavior.",
       "evidence": [
         "backend/main.mo",
-        "backend/migration.mo"
+        "frontend/src/hooks/useAdminActor.ts (shows frontend still calling `_initializeAccessControlWithSecret`, but no backend fix evidenced)"
       ]
     },
     {
-      "id": "REQ-65",
-      "requirement": "Add a preview validation checklist step (internal) to confirm the backend canister is running before testing Official Login and /admin, and ensure this checklist is documented in the repository for repeatable preview verification.",
-      "reason": "A checklist file was added, but in the provided diff it is truncated immediately after 'Check canister status:' with an empty code block and no concrete, repeatable steps shown (e.g., exact commands/URLs and expected outputs).",
+      "id": "REQ-76",
+      "requirement": "Persist inquiry submissions across canister upgrades (upgrade-safe storage), including persisting inquiries and `nextId` with correct continuation after upgrade; only add migration logic via `backend/migration.mo` if needed.",
+      "reason": "`backend/main.mo` shows `let inquiries = Map.empty<Nat, Inquiry>();` and `var nextId = 0;` with no `stable` storage, and no `preupgrade/postupgrade` hooks or migration usage shown. No `backend/migration.mo` changes are included.",
       "evidence": [
-        "frontend/PREVIEW_VALIDATION_CHECKLIST.md"
+        "backend/main.mo"
+      ]
+    },
+    {
+      "id": "REQ-78",
+      "requirement": "Build and validate the fix using Preview and Production checklists (relevant steps pass).",
+      "reason": "No changes or evidence in the diff summary indicate checklist execution, updates, or validation artifacts (e.g., edits to `frontend/PREVIEW_VALIDATION_CHECKLIST.md` or `frontend/PRODUCTION_SMOKE_TEST.md`, or other documented verification).",
+      "evidence": [
+        "file-diff summary shows no checklist/document modifications"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Added/used admin bulk export and additional inquiry management actions (e.g., `BulkExportActions`) beyond restoring initialization reliability and inquiry visibility.",
-      "reason": "BuildRequest non-goals explicitly avoid adding new admin management features beyond restoring reliable inquiry visibility/initialization. The diff shows AdminPage importing and rendering `BulkExportActions`, implying new/expanded admin functionality.",
+      "description": "Treating the backend error \"Admin secret already used\" as a recoverable/expected condition with a user-facing retry flow.",
+      "reason": "REQ-75 explicitly requires repeated calls to `_initializeAccessControlWithSecret` not to fail due to the secret having been used previously (idempotent success behavior). The diff instead adds frontend handling that anticipates and special-cases this failure mode rather than demonstrating it is fixed in the backend.",
       "evidence": [
+        "frontend/src/hooks/useAdminActor.ts",
         "frontend/src/pages/AdminPage.tsx",
-        "frontend-file-summaries.txt"
+        "frontend-file-summaries.txt (AdminPage description mentions recoverable \"Admin secret already used\")"
       ]
     },
     {
-      "description": "Added a 'Production Smoke Test Checklist' repository document.",
-      "reason": "Only a preview validation checklist (REQ-65) was requested; production smoke-test documentation was not requested as part of this build.",
+      "description": "Admin actor initialization timeout (30 seconds) and extensive replica rejection detail formatting/expandable error details UI.",
+      "reason": "Not requested explicitly in REQ-75–REQ-78; these are additional UX/error-handling features beyond the stated scope (fix authorization/persistence and restore reliable inquiry visibility and existing actions).",
       "evidence": [
-        "frontend/PRODUCTION_SMOKE_TEST.md"
+        "frontend/src/hooks/useAdminActor.ts",
+        "frontend/src/pages/AdminPage.tsx",
+        "frontend-file-summaries.txt (AdminPage description)"
       ]
     }
   ],
   "confidence": 0.72,
   "changed_files": [
     "backend/main.mo",
-    "backend/migration.mo",
     "frontend-file-summaries.txt",
-    "frontend/PREVIEW_VALIDATION_CHECKLIST.md",
-    "frontend/PRODUCTION_SMOKE_TEST.md",
     "frontend/src/hooks/useAdminActor.ts",
     "frontend/src/hooks/useAdminInquiries.ts",
     "frontend/src/pages/AdminPage.tsx",
-    "frontend/src/utils/adminError.ts",
     "project_state.json"
   ]
 }

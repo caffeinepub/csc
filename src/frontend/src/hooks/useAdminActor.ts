@@ -3,8 +3,8 @@ import { useOfficialAdminToken } from './useOfficialAdminToken';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { type backendInterface } from '../backend';
 import { createActorWithConfig } from '../config';
-import { useEffect } from 'react';
-import { extractReplicaRejectionDetails } from '../utils/adminError';
+import { useEffect, useRef } from 'react';
+import { extractReplicaRejectionDetails, isBackendInitializationBug, isAdminSecretAlreadyUsedError } from '../utils/adminError';
 
 /**
  * Wrapper actor hook specifically for admin operations.
@@ -15,15 +15,39 @@ import { extractReplicaRejectionDetails } from '../utils/adminError';
  * Exposes explicit states: initializing, ready, and failed.
  * Provides deterministic retry that recreates the actor and re-runs initialization.
  * Includes initialization timeout to prevent indefinite hangs.
+ * Detects and handles the known backend initialization bug gracefully.
+ * Treats "Admin secret already used" as a recoverable error that allows retry.
+ * Ensures actor is fully ready before downstream queries enable.
  */
 export function useAdminActor() {
   const { identity } = useInternetIdentity();
   const adminToken = useOfficialAdminToken();
   const queryClient = useQueryClient();
+  const lastTokenRef = useRef<string | null>(null);
+
+  // Track token changes and invalidate actor when token changes
+  useEffect(() => {
+    if (adminToken !== lastTokenRef.current) {
+      lastTokenRef.current = adminToken;
+      
+      // If token changed (login/logout), invalidate the actor to force recreation
+      if (adminToken) {
+        queryClient.invalidateQueries({ queryKey: ['adminActor'] });
+      } else {
+        // Token cleared (logout) - remove all admin queries
+        queryClient.removeQueries({ queryKey: ['adminActor'] });
+        queryClient.removeQueries({ queryKey: ['adminInquiries'] });
+      }
+    }
+  }, [adminToken, queryClient]);
 
   const actorQuery = useQuery<backendInterface>({
     queryKey: ['adminActor', identity?.getPrincipal().toString(), adminToken],
     queryFn: async () => {
+      if (!adminToken) {
+        throw new Error('Admin token not available. Please log in again.');
+      }
+
       const isAuthenticated = !!identity;
 
       // Create initialization timeout promise (30 seconds)
@@ -50,23 +74,54 @@ export function useAdminActor() {
           actor = await createActorWithConfig(actorOptions);
         }
 
-        // Initialize access control with admin token if available
-        if (adminToken) {
-          try {
-            await actor.initializeAccessControlWithSecret(adminToken);
-          } catch (error) {
-            console.error('Failed to initialize access control:', error);
-            
-            // Attach replica rejection details if available
-            const replicaDetails = extractReplicaRejectionDetails(error);
-            if (replicaDetails) {
-              const enrichedError = new Error(replicaDetails.reason);
-              (enrichedError as any).replicaDetails = replicaDetails;
-              (enrichedError as any).originalError = error;
-              throw enrichedError;
-            }
-            
-            throw error;
+        // Initialize access control with admin token
+        try {
+          await actor._initializeAccessControlWithSecret(adminToken);
+        } catch (error) {
+          console.error('Failed to initialize access control:', error);
+          
+          // Check if this is the "Admin secret already used" error - treat as recoverable
+          if (isAdminSecretAlreadyUsedError(error)) {
+            const recoverableError = new Error('Admin secret already used to initialize the system. This is expected after the first initialization. Click Retry to proceed.');
+            (recoverableError as any).isRecoverable = true;
+            (recoverableError as any).originalError = error;
+            throw recoverableError;
+          }
+
+          // Check if this is the backend initialization bug
+          if (isBackendInitializationBug(error)) {
+            const bugError = new Error('Backend initialization bug detected: The backend accepted your admin credentials but failed to grant admin privileges. This requires a backend code fix.');
+            (bugError as any).isBackendBug = true;
+            (bugError as any).originalError = error;
+            throw bugError;
+          }
+
+          // Enrich replica rejection errors with structured details
+          const replicaDetails = extractReplicaRejectionDetails(error);
+          if (replicaDetails) {
+            const enrichedError = error instanceof Error ? error : new Error(String(error));
+            (enrichedError as any).replicaDetails = replicaDetails;
+            throw enrichedError;
+          }
+
+          // Re-throw other errors as-is
+          throw error;
+        }
+
+        // Verify admin status after initialization to catch backend bugs early
+        try {
+          const isAdmin = await actor.isCallerAdmin();
+          if (!isAdmin) {
+            const verificationError = new Error('Admin verification failed: Backend did not grant admin privileges after initialization. This indicates a backend code issue.');
+            (verificationError as any).isBackendBug = true;
+            throw verificationError;
+          }
+        } catch (verificationError) {
+          // If verification itself fails, it might be a transient error or backend issue
+          console.error('Admin verification check failed:', verificationError);
+          // Only throw if it's not the "already used" error (which we handle above)
+          if (!isAdminSecretAlreadyUsedError(verificationError)) {
+            throw verificationError;
           }
         }
 
@@ -76,56 +131,29 @@ export function useAdminActor() {
       // Race between initialization and timeout
       return Promise.race([initPromise, timeoutPromise]);
     },
-    staleTime: Infinity,
-    enabled: !!adminToken, // Only run when we have an admin token
-    retry: (failureCount, error) => {
-      // Don't retry on authorization errors
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      if (errorMessage.includes('Unauthorized') || errorMessage.includes('Invalid secret')) {
-        return false;
-      }
-      // Don't auto-retry on replica rejections or timeouts (user should manually retry)
-      const replicaDetails = extractReplicaRejectionDetails(error);
-      if (replicaDetails || errorMessage.includes('timed out')) {
-        return false;
-      }
-      // Retry up to 2 times for other errors
-      return failureCount < 2;
-    },
+    enabled: !!adminToken,
+    retry: false, // Disable automatic retry; we provide explicit retry via retry()
+    staleTime: Infinity, // Actor should remain fresh until explicitly invalidated
+    gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes after unmount
   });
 
-  // Invalidate dependent queries when actor changes successfully
-  useEffect(() => {
-    if (actorQuery.data && !actorQuery.isFetching && !actorQuery.isError) {
-      // Invalidate admin inquiries when actor is ready
-      queryClient.invalidateQueries({ queryKey: ['adminInquiries'] });
-    }
-  }, [actorQuery.data, actorQuery.isFetching, actorQuery.isError, queryClient]);
-
-  // Compute explicit states:
-  // - isInitializing: we have a token and actor is fetching (not failed)
-  // - isReady: we have a token, actor exists, not fetching, and no error
-  // - isError: query failed
-  const isInitializing = !!adminToken && actorQuery.isFetching && !actorQuery.isError;
-  const isReady = !!adminToken && !!actorQuery.data && !actorQuery.isFetching && !actorQuery.isError;
-
-  // Provide a deterministic retry function that clears cache and forces fresh initialization
+  // Deterministic retry function that clears cache and forces fresh initialization
   const retry = () => {
-    // Remove the cached adminActor query to force a fresh actor creation
+    // Clear both actor and inquiry caches to ensure clean slate
     queryClient.removeQueries({ queryKey: ['adminActor'] });
-    // Remove cached inquiries to ensure fresh fetch after successful retry
     queryClient.removeQueries({ queryKey: ['adminInquiries'] });
-    // Trigger a fresh fetch
+    
+    // Force immediate refetch
     actorQuery.refetch();
   };
 
   return {
-    actor: actorQuery.data || null,
-    isFetching: actorQuery.isFetching,
+    actor: actorQuery.data,
+    isInitializing: actorQuery.isLoading || actorQuery.isFetching,
+    isReady: actorQuery.isSuccess && !!actorQuery.data,
     isError: actorQuery.isError,
     error: actorQuery.error,
-    isInitializing,
-    isReady,
     retry,
+    isFetching: actorQuery.isFetching,
   };
 }

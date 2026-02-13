@@ -2,8 +2,8 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-fix-the-preview-admin-experience-so-that-after-a-successful-official-login-the-admin-session-initializes-successfully-and-the-admin-dashboard-reliably-loads-and-displays-all-stored-inquiries-both-previously-submitted-and-newly-submitted",
-      "featureTitle": "Fix the preview /admin experience so that after a successful Official Login, the Admin session initializes successfully and the Admin Dashboard reliably loads and displays all stored inquiries (both previously submitted and newly submitted).",
+      "featureId": "feature-ensure-the-admin-dashboard-user-experience-matches-the-screenshot-scenario-but-succeeds-after-official-login-navigating-to-admin-loads-the-inquiry-list-instead-of-showing-failed-to-load-inquiries-unauthorized-only-admins-can-perform-this-action",
+      "featureTitle": "Ensure the admin dashboard user experience matches the screenshot scenario but succeeds: after Official Login, navigating to `/admin` loads the inquiry list instead of showing “Failed to Load Inquiries: Unauthorized: Only admins can perform this action.”",
       "files": [
         "frontend/src/hooks/useAdminActor.ts",
         "frontend/src/hooks/useAdminInquiries.ts",
@@ -18,49 +18,7 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-62"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-when-admin-session-initialization-fails-in-preview-show-a-clear-english-error-message-that-includes-replica-rejection-details-reject-code-and-request-id-when-available-and-provide-a-deterministic-retry-flow-that-re-creates-the-admin-actor-and-re-runs-initializeaccesscontrolwithsecret-before-any-admin-inquiry-calls-occur",
-      "featureTitle": "When Admin session initialization fails in preview, show a clear English error message that includes replica rejection details (reject code and request id when available) and provide a deterministic Retry flow that re-creates the admin actor and re-runs `initializeAccessControlWithSecret` before any admin inquiry calls occur.",
-      "files": [
-        "frontend/src/hooks/useAdminActor.ts",
-        "frontend/src/hooks/useAdminInquiries.ts",
-        "frontend/src/pages/AdminPage.tsx",
-        "frontend/src/utils/adminError.ts"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-64"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-add-a-preview-validation-checklist-step-internal-to-confirm-the-backend-canister-is-running-before-testing-official-login-and-admin-and-ensure-this-checklist-is-documented-in-the-repository-for-repeatable-preview-verification",
-      "featureTitle": "Add a preview validation checklist step (internal) to confirm the backend canister is running before testing Official Login and /admin, and ensure this checklist is documented in the repository for repeatable preview verification.",
-      "files": [
-        "frontend/PREVIEW_VALIDATION_CHECKLIST.md",
-        "frontend/PRODUCTION_SMOKE_TEST.md"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-65"
+        "REQ-77"
       ],
       "confidence": "high"
     }

@@ -1,11 +1,10 @@
 # Preview Environment Validation Checklist
 
-This checklist helps you verify that the preview environment is properly configured before testing admin functionality, preventing false failures caused by backend service issues.
+This checklist helps you verify that the preview deployment is working correctly before promoting to production.
 
 ## Prerequisites
 
-Before testing Official Login and Admin Dashboard in preview:
+Before testing the application, ensure the backend canister is running:
 
-### 1. Verify Backend Canister is Running
+### 1. Check Backend Canister Status
 
-**Check canister status:**

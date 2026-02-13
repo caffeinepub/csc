@@ -38,12 +38,19 @@ export function useOfficialLogin() {
 
   const login = (userId: string, password: string): boolean => {
     if (userId === CREDENTIALS.userId && password === CREDENTIALS.password) {
-      sessionStorage.setItem(SESSION_KEY, 'true');
+      // CRITICAL: Store token FIRST, then set session flag
+      // This ensures downstream hooks see the token immediately
       storeSessionParameter(ADMIN_TOKEN_KEY, ADMIN_SECRET_TOKEN);
+      sessionStorage.setItem(SESSION_KEY, 'true');
+      
+      // Update state
       setIsOfficiallyLoggedIn(true);
       
-      // Dispatch custom event for same-tab notification
-      window.dispatchEvent(new CustomEvent('officialLoginChange', { detail: { loggedIn: true } }));
+      // Dispatch custom event for same-tab notification AFTER both storage operations
+      // Use setTimeout to ensure storage writes complete before event fires
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('officialLoginChange', { detail: { loggedIn: true } }));
+      }, 0);
       
       return true;
     }

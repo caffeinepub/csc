@@ -16,21 +16,21 @@ import {
   isAuthorizationError, 
   extractReplicaRejectionDetails,
   formatReplicaRejectionMessage,
-  isReplicaRejectionError 
+  isReplicaRejectionError,
+  isBackendInitializationBug,
+  isRecoverableError,
+  isAdminSecretAlreadyUsedError
 } from '../utils/adminError';
 
 export default function AdminPage() {
   const { isOfficiallyLoggedIn, logout } = useOfficialLogin();
-  const { retry: retryAdminActor, isReady: isAdminReady } = useAdminActor();
+  const { retry: retryAdminActor, isReady: isAdminReady, isInitializing: isAdminInitializing, isError: isAdminError, error: adminError } = useAdminActor();
   const { 
     data: inquiries, 
-    isLoading, 
-    error, 
+    isLoading: isInquiriesLoading, 
+    error: inquiriesError, 
     safeRefetch, 
-    isFetching,
-    isAdminSessionInitializing,
-    isAdminSessionError,
-    adminSessionError,
+    isFetching: isInquiriesFetching,
   } = useGetAllInquiries();
   const queryClient = useQueryClient();
   const [showErrorDetails, setShowErrorDetails] = useState(false);
@@ -59,12 +59,24 @@ export default function AdminPage() {
     retryAdminActor();
   };
 
+  // Handle inquiry fetch errors that might indicate stale admin session
+  const handleRetryInquiries = () => {
+    // If we have an authorization error on inquiry fetch, reinitialize admin session first
+    if (inquiriesError && isAuthorizationError(inquiriesError)) {
+      console.log('Authorization error on inquiry fetch - reinitializing admin session');
+      retryAdminActor();
+    } else {
+      // Otherwise just refetch inquiries
+      safeRefetch();
+    }
+  };
+
   if (!isOfficiallyLoggedIn) {
     return null;
   }
 
   // Show initializing state when admin session is still setting up
-  if (isAdminSessionInitializing) {
+  if (isAdminInitializing) {
     return (
       <div className="min-h-screen bg-background">
         <header className="border-b bg-card sticky top-0 z-10">
@@ -88,10 +100,14 @@ export default function AdminPage() {
         <main className="container mx-auto px-4 py-8">
           <Card>
             <CardContent className="pt-6">
-              <div className="flex flex-col items-center justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
-                <p className="text-muted-foreground">Initializing admin session...</p>
-                <p className="text-xs text-muted-foreground mt-2">This may take a few moments</p>
+              <div className="flex flex-col items-center justify-center py-12 space-y-4">
+                <Loader2 className="h-12 w-12 animate-spin text-primary" />
+                <div className="text-center space-y-2">
+                  <h2 className="text-xl font-semibold">Initializing Admin Session</h2>
+                  <p className="text-muted-foreground">
+                    Setting up secure connection to backend...
+                  </p>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -100,34 +116,15 @@ export default function AdminPage() {
     );
   }
 
-  // Show admin session initialization error with appropriate recovery action
-  if (isAdminSessionError && adminSessionError) {
-    const errorMessage = getErrorMessage(adminSessionError);
-    const isAuthError = isAuthorizationError(adminSessionError);
-    const isReplicaError = isReplicaRejectionError(adminSessionError);
-    const replicaDetails = extractReplicaRejectionDetails(adminSessionError);
-
-    // Determine the primary message and action
-    let primaryMessage = errorMessage;
-    let showRetry = true;
-    let guidanceMessage = '';
-
-    if (replicaDetails) {
-      primaryMessage = formatReplicaRejectionMessage(replicaDetails);
-      showRetry = true;
-      
-      if (replicaDetails.isCanisterStopped) {
-        guidanceMessage = 'In preview: Confirm the backend service is running in your preview environment, then click Retry.';
-      } else {
-        guidanceMessage = 'The backend service may be temporarily unavailable. Please try again.';
-      }
-    } else if (isAuthError) {
-      showRetry = false;
-      guidanceMessage = 'Your session credentials are invalid. Please log out and log in again.';
-    } else if (errorMessage.includes('timed out')) {
-      showRetry = true;
-      guidanceMessage = 'The initialization request took too long. The backend service may be slow or unavailable.';
-    }
+  // Show error state if admin session initialization failed
+  if (isAdminError && adminError) {
+    const errorMessage = getErrorMessage(adminError);
+    const isAuthError = isAuthorizationError(adminError);
+    const isReplicaError = isReplicaRejectionError(adminError);
+    const replicaDetails = extractReplicaRejectionDetails(adminError);
+    const isInitBug = isBackendInitializationBug(adminError);
+    const isRecoverable = isRecoverableError(adminError);
+    const isAlreadyUsedError = isAdminSecretAlreadyUsedError(adminError);
 
     return (
       <div className="min-h-screen bg-background">
@@ -150,89 +147,143 @@ export default function AdminPage() {
         </header>
 
         <main className="container mx-auto px-4 py-8">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-destructive">
-                <AlertCircle className="h-5 w-5" />
-                Admin Session Initialization Failed
-              </CardTitle>
-              <CardDescription>
-                Unable to initialize admin session. {guidanceMessage}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>Error</AlertTitle>
-                <AlertDescription>
-                  <div className="space-y-3">
-                    <p>{primaryMessage}</p>
-                    
-                    {replicaDetails && (replicaDetails.rejectCode !== undefined || replicaDetails.requestId) && (
-                      <div className="mt-3">
-                        <button
-                          onClick={() => setShowErrorDetails(!showErrorDetails)}
-                          className="flex items-center gap-2 text-sm font-medium hover:underline focus:outline-none focus:ring-2 focus:ring-destructive/50 rounded px-1"
-                        >
-                          {showErrorDetails ? (
-                            <>
-                              <ChevronUp className="h-4 w-4" />
-                              Hide Details
-                            </>
-                          ) : (
-                            <>
-                              <ChevronDown className="h-4 w-4" />
-                              Show Details
-                            </>
-                          )}
-                        </button>
-                        
-                        {showErrorDetails && (
-                          <div className="mt-2 p-3 bg-destructive/10 rounded-md text-sm font-mono space-y-1">
-                            {replicaDetails.rejectCode !== undefined && (
-                              <div>
-                                <span className="font-semibold">Reject Code:</span> {replicaDetails.rejectCode}
-                              </div>
-                            )}
-                            {replicaDetails.requestId && (
-                              <div>
-                                <span className="font-semibold">Request ID:</span> {replicaDetails.requestId}
-                              </div>
-                            )}
-                            <div className="pt-2 border-t border-destructive/20">
-                              <span className="font-semibold">Full Error:</span>
-                              <div className="mt-1 text-xs break-all">{errorMessage}</div>
-                            </div>
-                          </div>
-                        )}
+          <Alert variant="destructive">
+            <AlertCircle className="h-5 w-5" />
+            <AlertTitle className="text-lg font-semibold">Admin Session Initialization Failed</AlertTitle>
+            <AlertDescription className="mt-2 space-y-4">
+              <p className="text-base">{errorMessage}</p>
+
+              {isAlreadyUsedError && (
+                <div className="bg-muted/50 p-4 rounded-md border border-border">
+                  <p className="text-sm font-medium mb-2">What does this mean?</p>
+                  <p className="text-sm text-muted-foreground">
+                    The admin session has already been initialized in a previous session. This is normal behavior. 
+                    Click <strong>Retry Initialization</strong> below to proceed with loading your admin dashboard.
+                  </p>
+                </div>
+              )}
+
+              {isInitBug && (
+                <div className="bg-muted/50 p-4 rounded-md border border-border">
+                  <p className="text-sm font-medium mb-2">Backend Code Issue Detected</p>
+                  <p className="text-sm text-muted-foreground">
+                    The backend accepted your admin credentials but failed to grant admin privileges. 
+                    This requires updating the backend code to properly assign the admin role after secret validation.
+                  </p>
+                </div>
+              )}
+
+              {isReplicaError && replicaDetails && (
+                <div className="bg-muted/50 p-4 rounded-md border border-border">
+                  <p className="text-sm font-medium mb-2">Backend Service Issue</p>
+                  <p className="text-sm text-muted-foreground mb-2">
+                    {formatReplicaRejectionMessage(replicaDetails)}
+                  </p>
+                  {replicaDetails.isCanisterStopped && (
+                    <p className="text-sm text-muted-foreground">
+                      Please contact your system administrator to start the backend canister.
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {/* Technical Details (Collapsible) */}
+              <div className="border-t pt-4">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowErrorDetails(!showErrorDetails)}
+                  className="w-full justify-between"
+                >
+                  <span className="text-sm font-medium">
+                    {showErrorDetails ? 'Hide' : 'Show'} Technical Details
+                  </span>
+                  {showErrorDetails ? (
+                    <ChevronUp className="h-4 w-4" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4" />
+                  )}
+                </Button>
+
+                {showErrorDetails && (
+                  <div className="mt-3 bg-muted p-4 rounded-md space-y-2">
+                    <div>
+                      <p className="text-xs font-semibold text-muted-foreground mb-1">Error Message:</p>
+                      <p className="text-xs font-mono break-all">{errorMessage}</p>
+                    </div>
+                    {replicaDetails?.rejectCode !== undefined && (
+                      <div>
+                        <p className="text-xs font-semibold text-muted-foreground mb-1">Reject Code:</p>
+                        <p className="text-xs font-mono">{replicaDetails.rejectCode}</p>
                       </div>
                     )}
-                    
-                    <div className="flex gap-2 pt-2">
-                      {showRetry ? (
-                        <Button variant="outline" size="sm" onClick={handleRetryInit}>
-                          <RefreshCw className="mr-2 h-4 w-4" />
-                          Retry
-                        </Button>
-                      ) : (
-                        <Button variant="outline" size="sm" onClick={handleLogout}>
-                          <LogOut className="mr-2 h-4 w-4" />
-                          Logout
-                        </Button>
-                      )}
-                    </div>
+                    {replicaDetails?.requestId && (
+                      <div>
+                        <p className="text-xs font-semibold text-muted-foreground mb-1">Request ID:</p>
+                        <p className="text-xs font-mono break-all">{replicaDetails.requestId}</p>
+                      </div>
+                    )}
                   </div>
-                </AlertDescription>
-              </Alert>
-            </CardContent>
-          </Card>
+                )}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                {/* Primary action: Retry for recoverable errors, Logout for auth errors */}
+                {isRecoverable ? (
+                  <>
+                    <Button
+                      onClick={handleRetryInit}
+                      className="flex-1 bg-primary hover:bg-primary/90"
+                    >
+                      <RefreshCw className="mr-2 h-4 w-4" />
+                      Retry Initialization
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={handleLogout}
+                      className="flex-1"
+                    >
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Logout
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button
+                      variant="outline"
+                      onClick={handleRetryInit}
+                      className="flex-1"
+                    >
+                      <RefreshCw className="mr-2 h-4 w-4" />
+                      Retry Initialization
+                    </Button>
+                    <Button
+                      onClick={handleLogout}
+                      className="flex-1 bg-destructive hover:bg-destructive/90"
+                    >
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Logout
+                    </Button>
+                  </>
+                )}
+              </div>
+
+              {isAuthError && !isRecoverable && (
+                <p className="text-xs text-muted-foreground text-center pt-2">
+                  If you continue to see this error, your credentials may be invalid. Please log out and try again.
+                </p>
+              )}
+            </AlertDescription>
+          </Alert>
         </main>
       </div>
     );
   }
 
-  // Disable refresh button during initialization or active fetch
-  const isRefreshDisabled = isAdminSessionInitializing || isFetching;
+  // Admin session is ready - show the dashboard
+  const isLoading = isInquiriesLoading || isInquiriesFetching;
+  const hasInquiries = inquiries && inquiries.length > 0;
 
   return (
     <div className="min-h-screen bg-background">
@@ -247,14 +298,14 @@ export default function AdminPage() {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Button 
-                variant="outline" 
-                size="sm" 
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={handleRefresh}
-                disabled={isRefreshDisabled}
+                disabled={isLoading}
               >
-                <RefreshCw className={`mr-2 h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />
-                {isFetching ? 'Refreshing...' : 'Refresh'}
+                <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+                Refresh
               </Button>
               <Button variant="outline" onClick={handleLogout}>
                 <LogOut className="mr-2 h-4 w-4" />
@@ -266,71 +317,65 @@ export default function AdminPage() {
       </header>
 
       <main className="container mx-auto px-4 py-8">
-        {isLoading ? (
+        {inquiriesError ? (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Failed to Load Inquiries</AlertTitle>
+            <AlertDescription className="space-y-3">
+              <p>{getErrorMessage(inquiriesError)}</p>
+              {isAuthorizationError(inquiriesError) && (
+                <div className="bg-muted/50 p-3 rounded-md border border-border">
+                  <p className="text-sm text-muted-foreground">
+                    Your admin session may have expired or become invalid. 
+                    Click <strong>Reinitialize Session</strong> to restore access.
+                  </p>
+                </div>
+              )}
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={handleRetryInquiries}>
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                  {isAuthorizationError(inquiriesError) ? 'Reinitialize Session' : 'Try Again'}
+                </Button>
+              </div>
+            </AlertDescription>
+          </Alert>
+        ) : isLoading ? (
           <Card>
             <CardContent className="pt-6">
-              <div className="flex flex-col items-center justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
+              <div className="flex flex-col items-center justify-center py-12 space-y-4">
+                <Loader2 className="h-12 w-12 animate-spin text-primary" />
                 <p className="text-muted-foreground">Loading inquiries...</p>
               </div>
             </CardContent>
           </Card>
-        ) : error ? (
+        ) : !hasInquiries ? (
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-destructive">
-                <AlertCircle className="h-5 w-5" />
-                Error Loading Inquiries
-              </CardTitle>
+              <CardTitle>No Inquiries Yet</CardTitle>
+              <CardDescription>
+                When customers submit inquiries through the contact form, they will appear here.
+              </CardDescription>
             </CardHeader>
             <CardContent>
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>Failed to load inquiries</AlertTitle>
-                <AlertDescription>
-                  <p className="mb-3">{getErrorMessage(error)}</p>
-                  <Button variant="outline" size="sm" onClick={handleRefresh}>
-                    <RefreshCw className="mr-2 h-4 w-4" />
-                    Try Again
-                  </Button>
-                </AlertDescription>
-              </Alert>
+              <div className="flex flex-col items-center justify-center py-12 space-y-4 text-muted-foreground">
+                <Inbox className="h-16 w-16" />
+                <p>Your inquiry list is empty</p>
+              </div>
             </CardContent>
           </Card>
-        ) : inquiries && inquiries.length > 0 ? (
+        ) : (
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex justify-between items-center">
               <div>
                 <h2 className="text-2xl font-bold">Inquiries</h2>
                 <p className="text-sm text-muted-foreground">
-                  {inquiries.length} total inquiry{inquiries.length !== 1 ? 's' : ''}
+                  {inquiries.length} total {inquiries.length === 1 ? 'inquiry' : 'inquiries'}
                 </p>
               </div>
               <BulkExportActions inquiries={inquiries} />
             </div>
             <InquiryList inquiries={inquiries} />
           </div>
-        ) : (
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex flex-col items-center justify-center py-12">
-                <Inbox className="h-12 w-12 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No inquiries yet</h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  New inquiries will appear here when submitted
-                </p>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={handleRefresh}
-                  disabled={isRefreshDisabled}
-                >
-                  <RefreshCw className={`mr-2 h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />
-                  {isFetching ? 'Refreshing...' : 'Refresh'}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
         )}
       </main>
     </div>

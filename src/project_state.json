@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 41,
+  "projectStateVersion": 49,
   "summary": "Website for “वैष्णवी ई-मित्र & CSC केन्द्र” (E-Mitra & CSC centre) in कोटा (माम), करौली, showcasing services/contact/inquiry form, with an “Official Login” (custom username/password) that now uses User ID K107172621 (password unchanged) and should automatically open the admin/management dashboard after login, with additional admin features requested.",
   "architectural_notes": [
     "Site content/language: Hindi promotional content for Vaishnavi E-Mitra & CSC centre.",
@@ -20,7 +20,9 @@
     "Preview version: After Official Login, clicking the Admin Dashboard’s built-in Refresh button triggers “Actor not available” and inquiries fail to load/show.",
     "Admin Dashboard can get stuck on an indefinite “Initializing admin session…” state after Official Login (admin session initialization/actor setup not completing).",
     "Preview: After Official Login, /admin fails immediately with “Admin Session Initialization Failed”; assistant suspects backend canister is stopped causing initialization failure.",
-    "Preview: User reports no inquiries (old or new) are visible; must restore full inquiry list visibility after fixing Admin Session initialization failure."
+    "Preview: User reports no inquiries (old or new) are visible; must restore full inquiry list visibility after fixing Admin Session initialization failure.",
+    "In both Preview and Live (Production), immediately after successful Official Login (K107172621 / Karauli#34), /admin shows “Admin Session Initialization Failed” along with “Unauthorized: Only admins can assign user roles”; occurs every time.",
+    "User confirms that in BOTH Live (Production) and Preview, they still cannot see any old or new inquiries in the Admin Dashboard (inquiries list remains missing after latest deployment)."
   ],
   "isFixRequest": true,
   "existing_features": [
@@ -487,6 +489,62 @@
         "REQ-65"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-ensure-the-frontend-official-login-admin-token-flow-results-in-a-successful-admin-session-initialization-and-a-non-error-admin-dashboard-load-after-login-matching-the-screenshot-scenario-where-the-page-currently-shows-admin-session-initialization-failed-this-includes-ensuring-the-admin-actor-initialization-succeeds-once-the-backend-bootstrapping-is-fixed-and-that-the-dashboard-loads-inquiries-or-shows-the-normal-empty-state-ui-if-none-exist-rather-than-the-initialization-error-ui",
+      "title": "Ensure the frontend Official Login + admin-token flow results in a successful Admin session initialization and a non-error Admin Dashboard load after login, matching the screenshot scenario where the page currently shows “Admin Session Initialization Failed”. This includes ensuring the admin actor initialization succeeds once the backend bootstrapping is fixed, and that the dashboard loads inquiries (or shows the normal empty-state UI if none exist) rather than the initialization error UI.",
+      "reqIds": [
+        "REQ-67"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-publish-the-fix-so-it-is-applied-to-production-live-and-verify-with-a-minimal-production-smoke-test-that-official-login-consistently-initializes-the-admin-session-and-loads-the-admin-dashboard-without-the-recurring-unauthorized-error",
+      "title": "Publish the fix so it is applied to Production (Live) and verify with a minimal production smoke test that Official Login consistently initializes the Admin session and loads the Admin Dashboard without the recurring unauthorized error.",
+      "reqIds": [
+        "REQ-68"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-that-after-a-successful-official-login-user-id-k107172621-password-karauli-34-the-admin-dashboard-at-admin-reliably-loads-inquiries-using-the-existing-frontend-token-flow-sessionstorage-key-caffeineadmintoken-without-showing-error-loading-inquiries-caused-by-authorization-failures",
+      "title": "Ensure that after a successful Official Login (User ID `K107172621`, Password `Karauli#34`) the admin dashboard at `/admin` reliably loads inquiries using the existing frontend token flow (sessionStorage key `caffeineAdminToken`) without showing “Error Loading Inquiries” caused by authorization failures.",
+      "reqIds": [
+        "REQ-70"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-validate-the-fix-against-the-repository-s-documented-production-smoke-test-flow-for-official-login-and-admin-dashboard-initialization-including-the-critical-checks-that-initialization-completes-and-no-unauthorized-errors-appear-and-update-the-checklist-text-only-if-needed-to-reflect-the-corrected-behavior-keep-all-user-facing-checklist-text-in-english",
+      "title": "Validate the fix against the repository’s documented production smoke-test flow for Official Login and Admin Dashboard initialization (including the critical checks that initialization completes and no Unauthorized errors appear), and update the checklist text only if needed to reflect the corrected behavior (keep all user-facing checklist text in English).",
+      "reqIds": [
+        "REQ-71"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-the-admin-dashboard-in-both-preview-and-live-can-reliably-initialize-and-then-load-inquiries-after-official-login-including-after-logout-login-cycles-page-refreshes-and-clicking-retry-initialization-the-ui-must-no-longer-get-stuck-behind-the-initialization-error-shown-in-the-uploaded-screenshot-when-the-correct-token-is-used",
+      "title": "Ensure the Admin Dashboard in both Preview and Live can reliably initialize and then load inquiries after Official Login, including after logout/login cycles, page refreshes, and clicking \"Retry Initialization\". The UI must no longer get stuck behind the initialization error shown in the uploaded screenshot when the correct token is used.",
+      "reqIds": [
+        "REQ-73"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-publish-the-fix-so-it-applies-to-both-preview-and-production-live-then-run-the-existing-repository-smoke-test-steps-relevant-to-official-login-admin-session-initialization-and-inquiry-visibility-old-if-still-present-newly-submitted",
+      "title": "Publish the fix so it applies to both Preview and Production (Live), then run the existing repository smoke-test steps relevant to: Official Login, admin session initialization, and inquiry visibility (old if still present + newly submitted).",
+      "reqIds": [
+        "REQ-74"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-the-admin-dashboard-user-experience-matches-the-screenshot-scenario-but-succeeds-after-official-login-navigating-to-admin-loads-the-inquiry-list-instead-of-showing-failed-to-load-inquiries-unauthorized-only-admins-can-perform-this-action",
+      "title": "Ensure the admin dashboard user experience matches the screenshot scenario but succeeds: after Official Login, navigating to `/admin` loads the inquiry list instead of showing “Failed to Load Inquiries: Unauthorized: Only admins can perform this action.”",
+      "reqIds": [
+        "REQ-77"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -595,6 +653,54 @@
       "summary": "Persist inquiries across backend canister upgrades so inquiries are not lost when publishing new preview versions; ensure `submitInquiry` writes to upgrade-safe storage and `getAllInquiries` returns the persisted dataset for authorized admin callers.",
       "reqIds": [
         "REQ-63"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-33",
+      "summary": "Fix backend admin-session bootstrapping so that calling `initializeAccessControlWithSecret(secret)` with the correct secret does NOT attempt a privileged role-assignment that can fail for a non-admin caller, and instead deterministically authorizes the caller as an admin for subsequent admin APIs (`getAllInquiries`, `setInquiryReadStatus`, `deleteInquiry`). The fix must eliminate the recurring error: “Unauthorized: Only admins can assign user roles” immediately after Official Login in both Preview and Live.",
+      "reqIds": [
+        "REQ-66"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-34",
+      "summary": "Fix backend admin-session bootstrapping so that calling `initializeAccessControlWithSecret(secret)` with the correct secret (`admin-secret-token-2024`) deterministically authorizes the caller as an admin for subsequent admin APIs (`getAllInquiries`, `setInquiryReadStatus`, `deleteInquiry`) and does not trigger any privileged role-assignment path that can fail for a non-admin caller. This must eliminate the recurring error: “Unauthorized: Only admins can access all inquiries” immediately after Official Login.",
+      "reqIds": [
+        "REQ-69"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-35",
+      "summary": "Fix backend admin-session bootstrapping so repeated calls to `initializeAccessControlWithSecret(secret)` do not fail with \"Admin secret already used to initialize the system\" and so admin authorization is granted per-caller (not via a single global boolean). Update admin-gated APIs (`getAllInquiries`, `setInquiryReadStatus`, `deleteInquiry`) to authorize using the per-caller admin-session state.",
+      "reqIds": [
+        "REQ-72"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-36",
+      "summary": "Fix backend admin bootstrapping so that calling `_initializeAccessControlWithSecret(\"admin-secret-token-2024\")` deterministically grants admin authorization to the *current caller* for subsequent admin APIs, without requiring any privileged role-assignment path that can fail for non-admin callers, and without using a single global “already initialized” flag that blocks later sessions.",
+      "reqIds": [
+        "REQ-75"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-37",
+      "summary": "Persist inquiry submissions across canister upgrades so that previously submitted inquiries are not lost after publishing a new version; ensure `submitInquiry` writes to upgrade-safe storage and `getAllInquiries` returns the persisted dataset for authorized admin callers.",
+      "reqIds": [
+        "REQ-76"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-39",
+      "summary": "Build and validate the fix using the repository checklists for Preview and Production flows relevant to Official Login, admin session initialization, and inquiry visibility (existing + newly submitted).",
+      "reqIds": [
+        "REQ-78"
       ],
       "status": "pending"
     }

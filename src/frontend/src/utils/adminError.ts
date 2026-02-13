@@ -1,6 +1,7 @@
 /**
  * Utility to derive human-readable error messages from unknown thrown values,
- * detect authorization-related failures, and extract replica rejection details.
+ * detect authorization-related failures, extract replica rejection details,
+ * and identify backend initialization issues.
  */
 
 export interface ReplicaRejectionDetails {
@@ -43,10 +44,26 @@ export function getErrorMessage(error: unknown): string {
 }
 
 /**
- * Detects if an error is authorization-related
- * Strengthened to catch common auth-related error patterns
+ * Detects if an error is the "Admin secret already used to initialize the system" error.
+ * This is a recoverable error that should trigger Retry, not Logout.
+ */
+export function isAdminSecretAlreadyUsedError(error: unknown): boolean {
+  const message = getErrorMessage(error).toLowerCase();
+  return message.includes('admin secret already used');
+}
+
+/**
+ * Detects if an error is authorization-related (invalid credentials, wrong secret, etc.)
+ * These errors should trigger Logout as the recovery action.
+ * 
+ * IMPORTANT: Does NOT include "admin secret already used" which is a recoverable initialization error.
  */
 export function isAuthorizationError(error: unknown): boolean {
+  // First check if it's the "already used" error - if so, it's NOT an auth error
+  if (isAdminSecretAlreadyUsedError(error)) {
+    return false;
+  }
+
   const message = getErrorMessage(error).toLowerCase();
   return (
     message.includes('unauthorized') ||
@@ -55,7 +72,22 @@ export function isAuthorizationError(error: unknown): boolean {
     message.includes('invalid token') ||
     message.includes('not authorized') ||
     message.includes('permission denied') ||
-    message.includes('access denied')
+    message.includes('access denied') ||
+    message.includes('system has not been initialized') ||
+    message.includes('only official admin')
+  );
+}
+
+/**
+ * Detects if the error is specifically the "Only admins can assign user roles" error
+ * that occurs when the backend's initializeAccessControlWithSecret doesn't grant admin role.
+ * This is now less likely after the backend fix, but kept for backwards compatibility.
+ */
+export function isBackendInitializationBug(error: unknown): boolean {
+  const message = getErrorMessage(error).toLowerCase();
+  return (
+    message.includes('only admins can assign user roles') ||
+    (message.includes('unauthorized') && message.includes('assign') && message.includes('role'))
   );
 }
 
@@ -76,6 +108,19 @@ export function isReplicaRejectionError(error: unknown): boolean {
     message.includes('reject code') ||
     message.includes('ic0508') ||
     message.includes('destination invalid')
+  );
+}
+
+/**
+ * Detects if an error is recoverable via retry (transient errors, initialization issues, etc.)
+ * These errors should show a Retry button as the primary action.
+ */
+export function isRecoverableError(error: unknown): boolean {
+  return (
+    isAdminSecretAlreadyUsedError(error) ||
+    isBackendInitializationBug(error) ||
+    isReplicaRejectionError(error) ||
+    getErrorMessage(error).toLowerCase().includes('timed out')
   );
 }
 

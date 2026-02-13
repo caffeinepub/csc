@@ -7,6 +7,7 @@ const ADMIN_TOKEN_KEY = 'caffeineAdminToken';
  * Hook that reads the admin secret token from sessionStorage
  * and stays in sync within the same tab by listening to officialLoginChange events.
  * This enables downstream actor creation to always have the latest token.
+ * Re-reads from sessionStorage on mount and on every auth change event.
  */
 export function useOfficialAdminToken(): string | null {
   const [token, setToken] = useState<string | null>(() => {
@@ -14,8 +15,18 @@ export function useOfficialAdminToken(): string | null {
   });
 
   useEffect(() => {
+    // Re-read token from storage on mount (handles navigation to /admin after login)
+    const currentToken = getSessionParameter(ADMIN_TOKEN_KEY);
+    if (currentToken !== token) {
+      setToken(currentToken);
+    }
+  }, []); // Run once on mount
+
+  useEffect(() => {
     const handleAuthChange = () => {
-      setToken(getSessionParameter(ADMIN_TOKEN_KEY));
+      // Always re-read from sessionStorage on auth change
+      const latestToken = getSessionParameter(ADMIN_TOKEN_KEY);
+      setToken(latestToken);
     };
 
     // Listen for custom event for same-tab updates

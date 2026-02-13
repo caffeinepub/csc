@@ -4,10 +4,13 @@ import { useOfficialAdminToken } from './useOfficialAdminToken';
 import { Inquiry } from '../backend';
 import { toast } from 'sonner';
 import { isAuthorizationError, normalizeError } from '../utils/adminError';
+import { useRef } from 'react';
 
 export function useGetAllInquiries() {
-  const { actor, isFetching: actorFetching, isReady, isInitializing, isError: actorError, error: actorErrorValue } = useAdminActor();
+  const { actor, isFetching: actorFetching, isReady, isInitializing, isError: actorError, error: actorErrorValue, retry: retryAdminActor } = useAdminActor();
   const adminToken = useOfficialAdminToken();
+  const queryClient = useQueryClient();
+  const hasAttemptedSelfHeal = useRef(false);
 
   const query = useQuery<Inquiry[]>({
     queryKey: ['adminInquiries', adminToken],
@@ -17,20 +20,39 @@ export function useGetAllInquiries() {
         throw new Error('Cannot fetch inquiries: Admin session not initialized. Please retry initialization.');
       }
       try {
-        return await actor.getAllInquiries();
+        const result = await actor.getAllInquiries();
+        // Reset self-heal flag on successful fetch
+        hasAttemptedSelfHeal.current = false;
+        return result;
       } catch (error: unknown) {
         console.error('Failed to fetch inquiries:', error);
+        
+        // Self-healing mechanism: If we get an authorization error but admin actor claims to be ready,
+        // it might be a stale actor. Try to reinitialize once automatically.
+        if (isAuthorizationError(error) && isReady && !hasAttemptedSelfHeal.current) {
+          console.warn('Authorization error detected despite ready admin actor. Attempting self-heal by reinitializing admin session...');
+          hasAttemptedSelfHeal.current = true;
+          
+          // Trigger admin actor reinitialization
+          retryAdminActor();
+          
+          // Throw a user-friendly error that explains what's happening
+          throw new Error('Admin session needs to be reinitialized. Please wait a moment and the page will refresh automatically.');
+        }
+        
         // Normalize and rethrow for consistent error handling
         throw normalizeError(error);
       }
     },
-    // Only enable when admin actor is ready (token exists, actor initialized, no init error)
-    enabled: isReady && !!adminToken,
+    // CRITICAL: Only enable when admin actor is ready AND we have a token
+    // This prevents premature fetching before initialization completes
+    enabled: isReady && !!adminToken && !!actor && !actorFetching,
     // Refetch on mount and reconnect to ensure we always show latest data
     refetchOnMount: 'always',
     refetchOnReconnect: true,
+    staleTime: 0, // Always consider data stale to ensure fresh fetches
     retry: (failureCount, error) => {
-      // Don't retry on authorization errors
+      // Don't retry on authorization errors (self-heal handles this)
       if (isAuthorizationError(error)) {
         return false;
       }
@@ -41,15 +63,20 @@ export function useGetAllInquiries() {
 
   // Safe refetch that only runs when prerequisites are met
   const safeRefetch = () => {
+    // Reset self-heal flag when user manually refreshes
+    hasAttemptedSelfHeal.current = false;
+    
     // Only refetch if admin session is ready (token exists and actor is initialized)
-    if (isReady && adminToken) {
+    if (isReady && adminToken && actor && !actorFetching) {
       return query.refetch();
     }
     // If prerequisites aren't met, show a helpful message
-    if (isInitializing) {
+    if (isInitializing || actorFetching) {
       toast.info('Please wait for admin session to initialize');
     } else if (!adminToken) {
       toast.error('Admin session not available. Please log in again.');
+    } else if (!actor) {
+      toast.error('Admin actor not available. Please retry initialization.');
     } else {
       toast.error('Admin session not ready. Please retry initialization.');
     }

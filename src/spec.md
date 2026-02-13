@@ -1,14 +1,12 @@
 # Specification
 
 ## Summary
-**Goal:** Fix preview /admin so the Admin session initializes reliably after Official Login and the Admin Dashboard consistently shows all inquiries (old + new), including across backend upgrades.
+**Goal:** Make Official Login reliably authorize the current caller as admin so `/admin` consistently loads inquiries, and ensure inquiries persist across canister upgrades.
 
 **Planned changes:**
-- Frontend: Resolve the /admin “Initializing admin session…” hang and prevent “Admin Session Initialization Failed” under normal conditions when the backend canister is running.
-- Frontend: Improve the admin initialization failure UI to show a clear English error with replica rejection details (reject code and request id when available), plus an expandable technical details area.
-- Frontend: Add a deterministic Retry flow that re-creates the admin actor and re-runs `initializeAccessControlWithSecret` before any inquiry calls; prevent user-facing “Actor not available” errors by gating queries until prerequisites are ready.
-- Frontend: Ensure the Admin Dashboard inquiry list loads all stored inquiries and refreshes to include newly submitted inquiries after submission.
-- Backend: Persist inquiries in upgrade-safe storage so inquiries survive canister upgrades; ensure `submitInquiry` appends safely with non-colliding IDs and `getAllInquiries` returns the full persisted set for authorized admin callers.
-- Documentation: Add a short preview validation checklist in the repo to confirm the backend canister is running before testing Official Login and /admin.
+- Backend: Fix admin bootstrapping so `_initializeAccessControlWithSecret("admin-secret-token-2024")` deterministically grants admin authorization to the current caller, is idempotent per-caller, and does not rely on a single global “already initialized” flag that blocks later sessions.
+- Backend: Persist inquiry submissions and `nextId` in upgrade-safe storage so inquiries survive canister upgrades and IDs continue increasing without collisions (add migration only if required to preserve existing data).
+- Frontend: Ensure post-Official Login flow navigates to `/admin` and loads the inquiry list (or empty state) without showing the unauthorized “Failed to Load Inquiries” error; Refresh should reliably refetch without transient actor/authorization errors during a valid session.
+- Validation: Verify changes using the repo’s Preview and Production checklists for Official Login, admin initialization, and inquiry visibility/actions (read/unread, delete) without breaking public inquiry submission success feedback.
 
-**User-visible outcome:** In preview, admins can log in and open /admin without getting stuck or failing initialization, can retry deterministically on transient replica errors, and can see all inquiries (previously submitted and newly submitted), even after publishing new preview versions.
+**User-visible outcome:** After Official Login (User ID `K107172621`, Password `Karauli#34`), the app can navigate to `/admin` and reliably display the inquiries list (or “No Inquiries Yet”), with Refresh/read/unread/delete working, and inquiries remaining available after upgrades.
