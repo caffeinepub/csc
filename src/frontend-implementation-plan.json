@@ -1,164 +1,84 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Official Login (custom credentials) + restore admin dashboard access (frontend-only)",
+  "title": "Fix Official Login admin token flow so Admin Dashboard loads inquiries reliably",
   "requirements": [
     {
-      "id": "REQ-21",
-      "summary": "Add a single \"Official Login\" entry point on the homepage that prompts for User ID + Password and validates exact provided credentials, with no other admin entry points in the public UI.",
+      "id": "REQ-48",
+      "summary": "Ensure Official Login session token enables Admin Dashboard to fetch and display all inquiries without authorization failures.",
       "acceptanceCriteria": [
-        "The public marketing website sections (Home/Services/Why Choose Us/Contact/Form) remain visible and unchanged in structure/content.",
-        "The homepage contains exactly one admin-related entry point labeled \"Official Login\"; no navigation items/anchors link to admin access.",
-        "Clicking \"Official Login\" opens a login UI that requires both User ID and Password.",
-        "Entering the exact credentials succeeds; any other values fail with a clear error message."
+        "Log in via Official Login (User ID: K107172621, Password: Karauli#34) and the app navigates to /admin.",
+        "On /admin, the inquiry list loads successfully and displays existing inquiries returned by the backend `getAllInquiries` API.",
+        "Backend rejects/unauthorized errors no longer occur when the correct `caffeineAdminToken` is present in the same tab session.",
+        "Submitting a new inquiry from the public form results in that inquiry appearing in /admin after refresh/refetch."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/admin/OfficialLoginDialog.tsx",
-          "operation": "create",
-          "description": "Create an Official Login dialog/modal UI with required User ID + Password inputs, validation against the exact credentials, and a clear error message on failure. Use shadcn-ui components (e.g., Dialog, Input, Label, Button, Alert) to implement the UI. Verify the component's usage instructions before implementing."
+          "path": "frontend/src/hooks/useAdminActor.ts",
+          "operation": "modify",
+          "description": "Make admin actor creation/initialization deterministic for Official Login by ensuring access-control initialization is completed before the actor is considered ready for admin queries, and trigger dependent React Query invalidation when the initialized actor changes (so /admin fetches use the initialized actor). Verify the component's usage instructions before implementing."
         },
-        {
-          "path": "frontend/src/components/sections/HeroSection.tsx",
-          "operation": "modify",
-          "description": "Add exactly one admin-related entry point labeled \"Official Login\" to the homepage hero section and wire it to open the OfficialLoginDialog; ensure no other admin links/buttons are introduced and keep existing marketing content/structure intact. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/NavigationBar.tsx",
-          "operation": "modify",
-          "description": "Confirm no admin-related navigation links/anchors exist; keep navigation limited to marketing section scrolling only (no \"Admin\"/\"Login\" nav items). Verify the component's usage instructions before implementing."
-        }
-      ]
-    },
-    {
-      "id": "REQ-22",
-      "summary": "Implement a session-only official-login state (sessionStorage) that persists across refresh in the same tab, clears on logout and on tab close, and returns users to the normal homepage when logged out.",
-      "acceptanceCriteria": [
-        "After successful Official Login, the app records an authenticated session in sessionStorage (or equivalent session-only storage).",
-        "Refreshing the page within the same tab keeps the user logged in.",
-        "Closing the tab/window clears the login session; reopening the site requires login again.",
-        "A visible \"Logout\" action exists in the admin area; clicking it clears the session and routes back to the homepage."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/hooks/useOfficialLogin.ts",
-          "operation": "create",
-          "description": "Create a small official-login session hook that reads/writes a boolean (and any minimal metadata if needed) to sessionStorage, exposes login/logout helpers, and provides an isOfficiallyLoggedIn flag for routing guards."
-        },
-        {
-          "path": "frontend/src/components/admin/OfficialLoginDialog.tsx",
-          "operation": "modify",
-          "description": "On successful credential validation, set the official-login session via useOfficialLogin and trigger navigation to /admin; on failure, show an inline error. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/pages/AdminPage.tsx",
-          "operation": "modify",
-          "description": "Add a visible Logout action that clears the session via useOfficialLogin and navigates back to the normal homepage view."
-        }
-      ]
-    },
-    {
-      "id": "REQ-23",
-      "summary": "Restore the admin dashboard UI at /admin for officially logged-in users to view inquiries and perform delete, mark read/unread, and export/download.",
-      "acceptanceCriteria": [
-        "Visiting \"/admin\" while not officially logged in does not show any admin data and instead redirects to the homepage (or shows a simple disabled/unauthorized message).",
-        "After Official Login succeeds, the user is redirected to \"/admin\" automatically.",
-        "The admin dashboard displays inquiry submissions with: id, timestamp, inquiry type, name, phone number, optional email, message, optional service category, internal flag, and read/unread state.",
-        "Admin actions are available per inquiry: delete and toggle read/unread.",
-        "An export/download action is available that downloads inquiries in a common format (e.g., CSV or JSON)."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/pages/AdminPage.tsx",
-          "operation": "modify",
-          "description": "Implement the restored admin dashboard page for /admin: fetch and render inquiries with all required fields, show per-inquiry actions (delete, read/unread toggle), show export/download controls, and include a Logout action."
-        },
-        {
-          "path": "frontend/src/components/admin/InquiryList.tsx",
-          "operation": "modify",
-          "description": "Implement an inquiry list/table UI for the admin page that renders the required inquiry fields (id, timestamp, inquiry type, name, phone number, optional email, message, optional service category, internal flag, read/unread state) and delegates per-row actions to InquiryActions. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/admin/InquiryActions.tsx",
-          "operation": "modify",
-          "description": "Implement per-inquiry action controls (delete, toggle read/unread) and wire them to React Query mutations exposed by useAdminInquiries. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/utils/inquiryExport.ts",
-          "operation": "modify",
-          "description": "Implement export utilities to download the current inquiry list in a common format (CSV and/or JSON) using browser Blob/download mechanics."
-        }
-      ]
-    },
-    {
-      "id": "REQ-24",
-      "summary": "Replace the unconditional /admin -> / redirect with an official-login guard that allows /admin only when an Official Login session is present, handling both /admin and /admin/ consistently.",
-      "acceptanceCriteria": [
-        "Current logic in frontend/src/App.tsx that unconditionally redirects \"/admin\" to \"/\" is replaced with a guard that allows \"/admin\" only when Official Login session is present.",
-        "\tThe marketing site remains the default view for \"/\" and other routes.",
-        "Both \"/admin\" and \"/admin/\" behave consistently (no admin page rendering when not logged in; admin renders when logged in)."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/App.tsx",
-          "operation": "modify",
-          "description": "Update SPA routing logic to conditionally render AdminPage only when the official-login session is present; otherwise redirect (or block) /admin and /admin/ back to /. Keep the marketing site as the default render for non-admin routes."
-        },
-        {
-          "path": "frontend/src/hooks/useOfficialLogin.ts",
-          "operation": "modify",
-          "description": "Expose minimal helpers needed by App routing (e.g., isOfficiallyLoggedIn + logout) and ensure session check is synchronous for guard decisions."
-        }
-      ]
-    },
-    {
-      "id": "REQ-25",
-      "summary": "Remove the unconditional redirect from the static admin entrypoint so direct navigation to /admin loads the SPA and is guarded by the app.",
-      "acceptanceCriteria": [
-        "frontend/public/admin/index.html no longer contains an unconditional JavaScript redirect to \"/\".",
-        "Direct navigation to \"/admin\" in a fresh tab loads the SPA; if not logged in it is guarded/redirected by the app, and if logged in it shows the admin dashboard."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/public/admin/index.html",
-          "operation": "modify",
-          "description": "Remove the immediate JavaScript redirect to '/' so that /admin can load the SPA; rely on App's official-login guard for access control."
-        },
-        {
-          "path": "frontend/src/App.tsx",
-          "operation": "modify",
-          "description": "Ensure the /admin guard runs on initial load when the SPA is opened directly at /admin, and handle both /admin and /admin/ consistently."
-        }
-      ]
-    },
-    {
-      "id": "REQ-27",
-      "summary": "Implement React Query hooks for admin inquiry operations (list, toggle read/unread, delete, export) and keep UI consistent by invalidating/refetching after mutations.",
-      "acceptanceCriteria": [
-        "Admin dashboard uses React Query for fetching and mutations.",
-        "After delete or read/unread toggle, the inquiries list updates without requiring a full page refresh.",
-        "Export action uses the latest fetched data or fetches fresh data before download."
-      ],
-      "file_operations": [
         {
           "path": "frontend/src/hooks/useAdminInquiries.ts",
           "operation": "modify",
-          "description": "Implement React Query hooks for admin inquiries: fetch list (getAllInquiries), mutate delete (deleteInquiry), mutate read/unread (setInquiryReadStatus), and provide a way for export to use the freshest available data."
+          "description": "Ensure inquiry fetching is tied to the current Official Login token/session so `getAllInquiries` is executed with an actor that has already applied `initializeAccessControlWithSecret(caffeineAdminToken)`, and the inquiry list refreshes when the token/session changes. Verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-49",
+      "summary": "Recreate/refetch admin actor and admin queries when the Official Login token changes within the same tab session.",
+      "acceptanceCriteria": [
+        "After login sets `sessionStorage['caffeineAdminToken']`, the admin actor is recreated/refetched and access-control initialization is invoked before running `getAllInquiries`.",
+        "After logout clears the official session and token, attempting to access /admin redirects to / and admin inquiry queries cannot fetch any data.",
+        "Changing token state (login/logout) triggers a refetch of the admin inquiries query without requiring a full page reload."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useOfficialAdminToken.ts",
+          "operation": "modify",
+          "description": "Ensure the hook reliably emits token changes within the same tab session (Official Login event) so React state updates consistently drive React Query key changes/invalidations for admin actor + admin inquiry queries. Preserve the sessionStorage key \"caffeineAdminToken\". Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/hooks/useAdminActor.ts",
+          "operation": "modify",
+          "description": "Adjust React Query keying and/or invalidation so that when the admin token changes (login/logout) the admin actor query reruns, and dependent admin queries are invalidated/refetched (without full reload). Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/hooks/useAdminInquiries.ts",
+          "operation": "modify",
+          "description": "Update React Query `queryKey` (or invalidation wiring) so the admin inquiries query refetches on admin token changes and never reuses a stale unauthorized result from a pre-login actor. Verify the component's usage instructions before implementing."
         },
         {
           "path": "frontend/src/pages/AdminPage.tsx",
           "operation": "modify",
-          "description": "Wire useAdminInquiries into the Admin dashboard: render loading/error states, invoke mutations from UI actions, and trigger export using the latest cached data or a fresh refetch as needed."
+          "description": "Ensure /admin behavior remains correct across login/logout: redirect away when not officially logged in, and refresh inquiry list after token changes (via updated hooks) without manual reload. Verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-50",
+      "summary": "Improve Admin Dashboard error UI to show specific failure reasons and present Logout vs Retry based on auth vs transient errors.",
+      "acceptanceCriteria": [
+        "When an admin inquiry fetch fails, the UI shows a human-readable error message derived from the actual thrown value (Error/message/string/object) whenever possible.",
+        "If the error reason indicates authorization failure (e.g., contains “Unauthorized” or “Only admins”), the primary recovery action presented is Logout (not Retry).",
+        "If the error is not authorization-related, the UI presents a Retry action that triggers a refetch."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/utils/adminError.ts",
+          "operation": "create",
+          "description": "Add a small utility to (1) derive a human-readable message from unknown thrown values (Error/string/object/etc.) and (2) detect authorization-related failures (e.g., contains \"Unauthorized\"/\"Only admins\") to drive context-appropriate actions. Verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/components/admin/InquiryActions.tsx",
+          "path": "frontend/src/pages/AdminPage.tsx",
           "operation": "modify",
-          "description": "Use React Query mutations from useAdminInquiries and ensure the inquiries query is invalidated/refetched after delete or read/unread updates to keep the list consistent. Verify the component's usage instructions before implementing."
+          "description": "Replace the generic “Error loading inquiries. Please try again.” fallback with messaging from the actual error (including non-standard thrown values), and switch primary action: Logout for auth-related failures, Retry for non-auth failures. Keep using existing immutable UI components under frontend/src/components/ui unchanged. Verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/utils/inquiryExport.ts",
+          "path": "frontend/src/hooks/useAdminInquiries.ts",
           "operation": "modify",
-          "description": "Integrate export helpers with the admin hooks/page so download uses the latest inquiries (either from React Query cache or via a controlled refetch before generating the file)."
+          "description": "Align hook-side error normalization with the Admin Dashboard error UI so non-standard thrown values are preserved as meaningful messages where possible (e.g., backend trap reasons), and surfaced to the page for display. Verify the component's usage instructions before implementing."
         }
       ]
     }

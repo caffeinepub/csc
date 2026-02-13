@@ -2,11 +2,11 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-add-an-official-login-entry-point-on-the-homepage-and-remove-avoid-any-other-admin-entry-points-that-prompts-for-a-user-id-and-password-and-validates-against-the-exact-credentials-user-id-k107182721-and-password-karauli-34",
-      "featureTitle": "Add an \"Official Login\" entry point on the homepage (and remove/avoid any other admin entry points) that prompts for a User ID and Password and validates against the exact credentials: User ID \"K107182721\" and Password \"Karauli#34\".",
+      "featureId": "feature-fix-the-official-login-admin-token-authorization-flow-so-that-after-a-successful-official-login-the-admin-dashboard-can-successfully-fetch-and-display-all-inquiry-submissions-i-e-getallinquiries-must-succeed-and-return-stored-inquiries-without-showing-error-loading-inquiries-please-try-again",
+      "featureTitle": "Fix the Official Login admin-token authorization flow so that after a successful Official Login, the Admin Dashboard can successfully fetch and display all inquiry submissions (i.e., `getAllInquiries` must succeed and return stored inquiries) without showing “Error loading inquiries. Please try again.”",
       "files": [
-        "frontend/src/components/admin/OfficialLoginDialog.tsx",
-        "frontend/src/components/sections/HeroSection.tsx"
+        "frontend/src/hooks/useAdminActor.ts",
+        "frontend/src/hooks/useAdminInquiries.ts"
       ],
       "components": [
         "authorization@4.0.0",
@@ -17,16 +17,16 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-21"
+        "REQ-48"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-implement-a-session-based-official-login-state-that-persists-only-for-the-current-browser-tab-session-and-is-cleared-on-explicit-logout-and-on-tab-window-close-when-logged-out-the-user-is-returned-to-the-normal-homepage-view",
-      "featureTitle": "Implement a session-based official-login state that persists only for the current browser tab/session and is cleared on explicit logout and on tab/window close; when logged out, the user is returned to the normal homepage view.",
+      "featureId": "feature-ensure-react-query-and-actor-initialization-reliably-re-run-when-the-official-login-token-changes-within-the-same-tab-session-so-admin-queries-always-use-an-actor-that-has-had-initializeaccesscontrolwithsecret-caffeineadmintoken-applied-before-any-admin-inquiry-api-calls",
+      "featureTitle": "Ensure React Query and actor initialization reliably re-run when the Official Login token changes within the same tab session, so admin queries always use an actor that has had `initializeAccessControlWithSecret(caffeineAdminToken)` applied before any admin inquiry API calls.",
       "files": [
-        "frontend/src/components/admin/OfficialLoginDialog.tsx",
-        "frontend/src/hooks/useOfficialLogin.ts",
+        "frontend/src/hooks/useAdminActor.ts",
+        "frontend/src/hooks/useAdminInquiries.ts",
         "frontend/src/pages/AdminPage.tsx"
       ],
       "components": [
@@ -38,80 +38,17 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-22"
+        "REQ-49"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-re-enable-and-restore-the-admin-management-dashboard-ui-at-route-admin-to-allow-the-logged-in-official-user-to-view-inquiry-submissions-and-perform-actions-delete-mark-as-read-unread-and-export-download-submissions",
-      "featureTitle": "Re-enable and restore the admin/management dashboard UI at route \"/admin\" to allow the logged-in official user to view inquiry submissions and perform actions: delete, mark as read/unread, and export/download submissions.",
+      "featureId": "feature-update-the-admin-dashboard-error-ui-to-always-display-the-most-specific-available-failure-reason-including-non-standard-errors-instead-of-the-generic-error-loading-inquiries-please-try-again-and-keep-actions-context-appropriate-logout-for-auth-related-failures-retry-for-transient-non-auth-failures",
+      "featureTitle": "Update the Admin Dashboard error UI to always display the most specific available failure reason (including non-standard errors) instead of the generic “Error loading inquiries. Please try again.”, and keep actions context-appropriate (Logout for auth-related failures; Retry for transient/non-auth failures).",
       "files": [
-        "frontend/src/components/admin/InquiryActions.tsx",
-        "frontend/src/components/admin/InquiryList.tsx",
-        "frontend/src/pages/AdminPage.tsx",
-        "frontend/src/utils/inquiryExport.ts"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-23"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-update-spa-routing-behavior-so-admin-is-no-longer-force-redirected-to-when-the-user-is-officially-logged-in-while-preserving-the-redirect-guard-for-non-logged-in-users",
-      "featureTitle": "Update SPA routing behavior so \"/admin\" is no longer force-redirected to \"/\" when the user is officially logged in, while preserving the redirect/guard for non-logged-in users.",
-      "files": [
-        "frontend/src/App.tsx",
-        "frontend/src/hooks/useOfficialLogin.ts"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-24"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-update-the-static-entrypoint-at-frontend-public-admin-index-html-to-no-longer-immediately-redirect-to-so-that-direct-navigation-to-admin-can-load-the-spa-and-show-the-admin-dashboard-for-an-authenticated-official-session",
-      "featureTitle": "Update the static entrypoint at frontend/public/admin/index.html to no longer immediately redirect to \"/\" so that direct navigation to \"/admin\" can load the SPA and show the admin dashboard for an authenticated official session.",
-      "files": [
-        "frontend/public/admin/index.html",
-        "frontend/src/App.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-25"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-implement-react-query-hooks-for-the-restored-admin-inquiry-operations-list-mark-read-unread-delete-export-and-ensure-the-ui-stays-consistent-by-invalidating-refetching-inquiries-after-mutations",
-      "featureTitle": "Implement React Query hooks for the restored admin inquiry operations (list, mark read/unread, delete, export) and ensure the UI stays consistent by invalidating/refetching inquiries after mutations.",
-      "files": [
-        "frontend/src/components/admin/InquiryActions.tsx",
         "frontend/src/hooks/useAdminInquiries.ts",
         "frontend/src/pages/AdminPage.tsx",
-        "frontend/src/utils/inquiryExport.ts"
+        "frontend/src/utils/adminError.ts"
       ],
       "components": [
         "authorization@4.0.0",
@@ -122,7 +59,7 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-27"
+        "REQ-50"
       ],
       "confidence": "high"
     }

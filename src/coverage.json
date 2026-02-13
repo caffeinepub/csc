@@ -1,109 +1,57 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-12T19:45:12.988Z",
+  "generatedAt": "2026-02-13T03:35:51.345Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 7,
-    "implemented": 6,
+    "total": 3,
+    "implemented": 3,
     "items": [
       {
-        "id": "REQ-21",
-        "summary": "Add an \"Official Login\" entry point on the homepage (and remove/avoid any other admin entry points) that prompts for a User ID and Password and validates against the exact credentials: User ID \"K107182721\" and Password \"Karauli#34\".",
+        "id": "REQ-48",
+        "summary": "Fix the Official Login admin-token authorization flow so that after a successful Official Login, the Admin Dashboard can successfully fetch and display all inquiry submissions (i.e., `getAllInquiries` must succeed and return stored inquiries) without showing “Error loading inquiries. Please try again.”",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/admin/OfficialLoginDialog.tsx",
-          "frontend/src/components/sections/HeroSection.tsx",
-          "frontend/src/components/NavigationBar.tsx"
+          "frontend/src/hooks/useAdminActor.ts",
+          "frontend/src/hooks/useAdminInquiries.ts"
         ],
         "matchedFiles": [
-          "frontend/src/components/admin/OfficialLoginDialog.tsx",
-          "frontend/src/components/sections/HeroSection.tsx"
+          "frontend/src/hooks/useAdminActor.ts",
+          "frontend/src/hooks/useAdminInquiries.ts"
         ]
       },
       {
-        "id": "REQ-22",
-        "summary": "Implement a session-based official-login state that persists only for the current browser tab/session and is cleared on explicit logout and on tab/window close; when logged out, the user is returned to the normal homepage view.",
+        "id": "REQ-49",
+        "summary": "Ensure React Query and actor initialization reliably re-run when the Official Login token changes within the same tab session, so admin queries always use an actor that has had `initializeAccessControlWithSecret(caffeineAdminToken)` applied before any admin inquiry API calls.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/hooks/useOfficialLogin.ts",
-          "frontend/src/components/admin/OfficialLoginDialog.tsx",
+          "frontend/src/hooks/useOfficialAdminToken.ts",
+          "frontend/src/hooks/useAdminActor.ts",
+          "frontend/src/hooks/useAdminInquiries.ts",
           "frontend/src/pages/AdminPage.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/hooks/useOfficialLogin.ts",
-          "frontend/src/components/admin/OfficialLoginDialog.tsx",
+          "frontend/src/hooks/useAdminActor.ts",
+          "frontend/src/hooks/useAdminInquiries.ts",
           "frontend/src/pages/AdminPage.tsx"
         ]
       },
       {
-        "id": "REQ-23",
-        "summary": "Re-enable and restore the admin/management dashboard UI at route \"/admin\" to allow the logged-in official user to view inquiry submissions and perform actions: delete, mark as read/unread, and export/download submissions.",
+        "id": "REQ-50",
+        "summary": "Update the Admin Dashboard error UI to always display the most specific available failure reason (including non-standard errors) instead of the generic “Error loading inquiries. Please try again.”, and keep actions context-appropriate (Logout for auth-related failures; Retry for transient/non-auth failures).",
         "status": "implemented",
         "plannedFiles": [
+          "frontend/src/utils/adminError.ts",
           "frontend/src/pages/AdminPage.tsx",
-          "frontend/src/components/admin/InquiryList.tsx",
-          "frontend/src/components/admin/InquiryActions.tsx",
-          "frontend/src/utils/inquiryExport.ts"
+          "frontend/src/hooks/useAdminInquiries.ts"
         ],
         "matchedFiles": [
+          "frontend/src/utils/adminError.ts",
           "frontend/src/pages/AdminPage.tsx",
-          "frontend/src/components/admin/InquiryList.tsx",
-          "frontend/src/components/admin/InquiryActions.tsx",
-          "frontend/src/utils/inquiryExport.ts"
-        ]
-      },
-      {
-        "id": "REQ-24",
-        "summary": "Update SPA routing behavior so \"/admin\" is no longer force-redirected to \"/\" when the user is officially logged in, while preserving the redirect/guard for non-logged-in users.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/App.tsx",
-          "frontend/src/hooks/useOfficialLogin.ts"
-        ],
-        "matchedFiles": [
-          "frontend/src/App.tsx",
-          "frontend/src/hooks/useOfficialLogin.ts"
-        ]
-      },
-      {
-        "id": "REQ-25",
-        "summary": "Update the static entrypoint at frontend/public/admin/index.html to no longer immediately redirect to \"/\" so that direct navigation to \"/admin\" can load the SPA and show the admin dashboard for an authenticated official session.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/public/admin/index.html",
-          "frontend/src/App.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/public/admin/index.html",
-          "frontend/src/App.tsx"
-        ]
-      },
-      {
-        "id": "REQ-26",
-        "summary": "Extend the Motoko backend (single actor in backend/main.mo) with access-controlled inquiry management APIs needed by the restored admin dashboard: list inquiries, delete inquiry, and set read/unread, plus an export-friendly retrieval method if needed by the frontend.",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-27",
-        "summary": "Implement React Query hooks for the restored admin inquiry operations (list, mark read/unread, delete, export) and ensure the UI stays consistent by invalidating/refetching inquiries after mutations.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/hooks/useAdminInquiries.ts",
-          "frontend/src/pages/AdminPage.tsx",
-          "frontend/src/components/admin/InquiryActions.tsx",
-          "frontend/src/utils/inquiryExport.ts"
-        ],
-        "matchedFiles": [
-          "frontend/src/hooks/useAdminInquiries.ts",
-          "frontend/src/pages/AdminPage.tsx",
-          "frontend/src/components/admin/InquiryActions.tsx",
-          "frontend/src/utils/inquiryExport.ts"
+          "frontend/src/hooks/useAdminInquiries.ts"
         ]
       }
     ]
@@ -114,20 +62,10 @@
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/public/admin/index.html",
-    "frontend/src/App.tsx",
-    "frontend/src/backend.d.ts",
-    "frontend/src/backend.ts",
-    "frontend/src/components/admin/InquiryActions.tsx",
-    "frontend/src/components/admin/InquiryList.tsx",
-    "frontend/src/components/admin/OfficialLoginDialog.tsx",
-    "frontend/src/components/sections/HeroSection.tsx",
-    "frontend/src/declarations/backend.did.d.ts",
-    "frontend/src/declarations/backend.did.js",
+    "frontend/src/hooks/useAdminActor.ts",
     "frontend/src/hooks/useAdminInquiries.ts",
-    "frontend/src/hooks/useOfficialLogin.ts",
     "frontend/src/pages/AdminPage.tsx",
-    "frontend/src/utils/inquiryExport.ts",
+    "frontend/src/utils/adminError.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

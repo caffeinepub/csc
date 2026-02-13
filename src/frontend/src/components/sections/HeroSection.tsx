@@ -3,13 +3,14 @@ import { Button } from '@/components/ui/button';
 import { Phone, MessageCircle, ShieldCheck } from 'lucide-react';
 import { siteContent } from '../../content/siteContent';
 import OfficialLoginDialog from '../admin/OfficialLoginDialog';
+import { navigateTo } from '../../utils/navigation';
 
 export default function HeroSection() {
   const [loginDialogOpen, setLoginDialogOpen] = useState(false);
 
   const handleLoginSuccess = () => {
-    window.history.pushState(null, '', '/admin');
-    window.location.href = '/admin';
+    setLoginDialogOpen(false);
+    navigateTo('/admin');
   };
 
   return (

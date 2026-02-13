@@ -1,11 +1,16 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Inquiry, InquiryType } from '../../backend';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
 import InquiryActions from './InquiryActions';
-import { Phone, Mail, MessageSquare, Calendar, Tag } from 'lucide-react';
+import { useBulkSetInquiryReadStatus } from '../../hooks/useAdminInquiries';
+import { Phone, Mail, MessageSquare, Calendar, Tag, Search, Filter, CheckCheck, XCircle } from 'lucide-react';
 
 interface InquiryListProps {
   inquiries: Inquiry[];
@@ -13,12 +18,52 @@ interface InquiryListProps {
 
 export default function InquiryList({ inquiries }: InquiryListProps) {
   const [filter, setFilter] = useState<'all' | 'unread' | 'read'>('all');
+  const [searchText, setSearchText] = useState('');
+  const [inquiryTypeFilter, setInquiryTypeFilter] = useState<string>('all');
+  const [serviceCategoryFilter, setServiceCategoryFilter] = useState<string>('all');
+  
+  const bulkSetReadStatus = useBulkSetInquiryReadStatus();
 
-  const filteredInquiries = inquiries.filter((inquiry) => {
-    if (filter === 'unread') return !inquiry.read;
-    if (filter === 'read') return inquiry.read;
-    return true;
-  });
+  // Extract unique service categories from inquiries
+  const serviceCategories = useMemo(() => {
+    const categories = new Set<string>();
+    inquiries.forEach(inquiry => {
+      if (inquiry.serviceCategory) {
+        categories.add(inquiry.serviceCategory);
+      }
+    });
+    return Array.from(categories).sort();
+  }, [inquiries]);
+
+  // Apply all filters
+  const filteredInquiries = useMemo(() => {
+    return inquiries.filter((inquiry) => {
+      // Read/unread filter
+      if (filter === 'unread' && inquiry.read) return false;
+      if (filter === 'read' && !inquiry.read) return false;
+
+      // Search filter (name + phone number)
+      if (searchText) {
+        const search = searchText.toLowerCase();
+        const matchesName = inquiry.name.toLowerCase().includes(search);
+        const matchesPhone = inquiry.phoneNumber.includes(search);
+        if (!matchesName && !matchesPhone) return false;
+      }
+
+      // Inquiry type filter
+      if (inquiryTypeFilter !== 'all') {
+        if (inquiryTypeFilter === 'contact' && inquiry.inquiryType !== InquiryType.contact) return false;
+        if (inquiryTypeFilter === 'serviceRequest' && inquiry.inquiryType !== InquiryType.serviceRequest) return false;
+      }
+
+      // Service category filter
+      if (serviceCategoryFilter !== 'all') {
+        if (inquiry.serviceCategory !== serviceCategoryFilter) return false;
+      }
+
+      return true;
+    });
+  }, [inquiries, filter, searchText, inquiryTypeFilter, serviceCategoryFilter]);
 
   const unreadCount = inquiries.filter((i) => !i.read).length;
 
@@ -37,8 +82,117 @@ export default function InquiryList({ inquiries }: InquiryListProps) {
     return type === InquiryType.contact ? 'संपर्क' : 'सेवा अनुरोध';
   };
 
+  const handleBulkMarkAsRead = () => {
+    const inquiryIds = filteredInquiries
+      .filter(i => !i.read)
+      .map(i => i.id);
+    
+    if (inquiryIds.length > 0) {
+      bulkSetReadStatus.mutate({ inquiryIds, read: true });
+    }
+  };
+
+  const handleBulkMarkAsUnread = () => {
+    const inquiryIds = filteredInquiries
+      .filter(i => i.read)
+      .map(i => i.id);
+    
+    if (inquiryIds.length > 0) {
+      bulkSetReadStatus.mutate({ inquiryIds, read: false });
+    }
+  };
+
+  const hasUnreadInFiltered = filteredInquiries.some(i => !i.read);
+  const hasReadInFiltered = filteredInquiries.some(i => i.read);
+
   return (
     <div className="space-y-4">
+      {/* Search and Filters */}
+      <div className="space-y-4 p-4 bg-muted/30 rounded-lg border">
+        <div className="flex items-center gap-2 text-sm font-medium">
+          <Filter className="h-4 w-4" />
+          <span>खोज और फ़िल्टर</span>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Search */}
+          <div className="space-y-2">
+            <Label htmlFor="search" className="text-xs">नाम या फ़ोन नंबर खोजें</Label>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                id="search"
+                placeholder="खोजें..."
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+          </div>
+
+          {/* Inquiry Type Filter */}
+          <div className="space-y-2">
+            <Label htmlFor="inquiryType" className="text-xs">पूछताछ प्रकार</Label>
+            <Select value={inquiryTypeFilter} onValueChange={setInquiryTypeFilter}>
+              <SelectTrigger id="inquiryType">
+                <SelectValue placeholder="सभी प्रकार" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">सभी प्रकार</SelectItem>
+                <SelectItem value="contact">संपर्क</SelectItem>
+                <SelectItem value="serviceRequest">सेवा अनुरोध</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Service Category Filter */}
+          <div className="space-y-2">
+            <Label htmlFor="serviceCategory" className="text-xs">सेवा श्रेणी</Label>
+            <Select value={serviceCategoryFilter} onValueChange={setServiceCategoryFilter}>
+              <SelectTrigger id="serviceCategory">
+                <SelectValue placeholder="सभी श्रेणियाँ" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">सभी श्रेणियाँ</SelectItem>
+                {serviceCategories.map(category => (
+                  <SelectItem key={category} value={category}>
+                    {category}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        {/* Bulk Actions */}
+        {filteredInquiries.length > 0 && (
+          <div className="flex items-center gap-2 pt-2 border-t">
+            <span className="text-xs text-muted-foreground">बल्क एक्शन:</span>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleBulkMarkAsRead}
+              disabled={!hasUnreadInFiltered || bulkSetReadStatus.isPending}
+              className="h-8"
+            >
+              <CheckCheck className="mr-1 h-3 w-3" />
+              सभी को पढ़ा हुआ चिह्नित करें
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleBulkMarkAsUnread}
+              disabled={!hasReadInFiltered || bulkSetReadStatus.isPending}
+              className="h-8"
+            >
+              <XCircle className="mr-1 h-3 w-3" />
+              सभी को अपठित चिह्नित करें
+            </Button>
+          </div>
+        )}
+      </div>
+
+      {/* Tabs and List */}
       <Tabs value={filter} onValueChange={(v) => setFilter(v as typeof filter)}>
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="all">सभी ({inquiries.length})</TabsTrigger>
@@ -49,6 +203,9 @@ export default function InquiryList({ inquiries }: InquiryListProps) {
         </TabsList>
 
         <TabsContent value={filter} className="mt-4">
+          <div className="mb-2 text-sm text-muted-foreground">
+            {filteredInquiries.length} परिणाम मिले
+          </div>
           <ScrollArea className="h-[600px] pr-4">
             {filteredInquiries.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">

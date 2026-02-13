@@ -4,6 +4,7 @@ import Array "mo:core/Array";
 import Iter "mo:core/Iter";
 import Principal "mo:core/Principal";
 import Runtime "mo:core/Runtime";
+import Text "mo:core/Text";
 import AccessControl "authorization/access-control";
 import MixinAuthorization "authorization/MixinAuthorization";
 
@@ -36,6 +37,18 @@ actor {
   var nextId = 0;
   let inquiries = Map.empty<Nat, Inquiry>();
   let userProfiles = Map.empty<Principal, UserProfile>();
+
+  // Admin secret token for authentication
+  let ADMIN_SECRET = "admin-secret-token-2024";
+
+  // Initialize caller as admin using secret token
+  public shared ({ caller }) func initializeAccessControlWithSecret(secret : Text) : async () {
+    if (secret != ADMIN_SECRET) {
+      Runtime.trap("Unauthorized: Invalid secret token");
+    };
+    // Grant admin role to the caller
+    AccessControl.assignRole(accessControlState, caller, caller, #admin);
+  };
 
   public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
@@ -88,8 +101,7 @@ actor {
     if (not AccessControl.isAdmin(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Only admins can access all inquiries");
     };
-    let inquiriesArray = inquiries.values().toArray();
-    inquiriesArray;
+    inquiries.values().toArray();
   };
 
   public shared ({ caller }) func setInquiryReadStatus(inquiryId : Nat, read : Bool) : async () {

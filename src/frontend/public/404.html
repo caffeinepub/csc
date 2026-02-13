@@ -6,10 +6,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Vaishnavi E-Mitra & CSC</title>
     <script type="module">
-      // SPA fallback: redirect to root and let client-side routing handle the path
+      // SPA fallback: preserve requested path and redirect to root
       const currentPath = window.location.pathname;
       if (currentPath !== '/') {
-        window.history.replaceState(null, '', currentPath);
+        // Store the requested path for client-side routing to restore
+        try {
+          sessionStorage.setItem('requestedPath', currentPath);
+        } catch (e) {
+          // Ignore storage errors
+          console.error('Failed to store requested path:', e);
+        }
         window.location.replace('/');
       }
     </script>

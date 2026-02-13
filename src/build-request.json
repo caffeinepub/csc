@@ -1,138 +1,77 @@
 {
   "kind": "build_request",
-  "title": "Add Official Login (custom credentials) and restore Admin dashboard access",
-  "priority": "normal",
+  "title": "Fix Admin Dashboard “Error loading inquiries” so Official Login can view all inquiries",
+  "priority": "high",
   "requirements": [
     {
-      "id": "REQ-21",
-      "text": "Add an \"Official Login\" entry point on the homepage (and remove/avoid any other admin entry points) that prompts for a User ID and Password and validates against the exact credentials: User ID \"K107182721\" and Password \"Karauli#34\".",
-      "target": "frontend",
+      "id": "REQ-48",
+      "text": "Fix the Official Login admin-token authorization flow so that after a successful Official Login, the Admin Dashboard can successfully fetch and display all inquiry submissions (i.e., `getAllInquiries` must succeed and return stored inquiries) without showing “Error loading inquiries. Please try again.”",
+      "target": "both",
       "source": {
         "messageIds": [
-          "msg-1"
+          "recent-messages"
         ],
         "quotes": [
-          "There should be only one option on the home screen named Official Login whose user id will be K107182721 and password is Karauli#34"
+          "इस समस्या का समाधान करो अभी मुझे सभी पूछताछ देखनी है",
+          "हां ठीक करो",
+          "Error loading inquiries. Please try again."
         ]
       },
       "acceptanceCriteria": [
-        "The public marketing website sections (Home/Services/Why Choose Us/Contact/Form) remain visible and unchanged in structure/content.",
-        "The homepage contains exactly one admin-related entry point labeled \"Official Login\"; no navigation items/anchors link to admin access.",
-        "Clicking \"Official Login\" opens a login UI that requires both User ID and Password.",
-        "Entering the exact credentials succeeds; any other values fail with a clear error message."
+        "Log in via Official Login (User ID: K107172621, Password: Karauli#34) and the app navigates to /admin.",
+        "On /admin, the inquiry list loads successfully and displays existing inquiries returned by the backend `getAllInquiries` API.",
+        "Backend rejects/unauthorized errors no longer occur when the correct `caffeineAdminToken` is present in the same tab session.",
+        "Submitting a new inquiry from the public form results in that inquiry appearing in /admin after refresh/refetch."
       ]
     },
     {
-      "id": "REQ-22",
-      "text": "Implement a session-based official-login state that persists only for the current browser tab/session and is cleared on explicit logout and on tab/window close; when logged out, the user is returned to the normal homepage view.",
+      "id": "REQ-49",
+      "text": "Ensure React Query and actor initialization reliably re-run when the Official Login token changes within the same tab session, so admin queries always use an actor that has had `initializeAccessControlWithSecret(caffeineAdminToken)` applied before any admin inquiry API calls.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "recent-messages"
         ],
         "quotes": [
-          "After logging out or closing a tab, shouldn't the user always return to the homepage with just the \"Official Login\" button?"
+          "Error loading inquiries. Please try again."
         ]
       },
       "acceptanceCriteria": [
-        "After successful Official Login, the app records an authenticated session in sessionStorage (or equivalent session-only storage).",
-        "Refreshing the page within the same tab keeps the user logged in.",
-        "Closing the tab/window clears the login session; reopening the site requires login again.",
-        "A visible \"Logout\" action exists in the admin area; clicking it clears the session and routes back to the homepage."
+        "After login sets `sessionStorage['caffeineAdminToken']`, the admin actor is recreated/refetched and access-control initialization is invoked before running `getAllInquiries`.",
+        "After logout clears the official session and token, attempting to access /admin redirects to / and admin inquiry queries cannot fetch any data.",
+        "Changing token state (login/logout) triggers a refetch of the admin inquiries query without requiring a full page reload."
       ]
     },
     {
-      "id": "REQ-23",
-      "text": "Re-enable and restore the admin/management dashboard UI at route \"/admin\" to allow the logged-in official user to view inquiry submissions and perform actions: delete, mark as read/unread, and export/download submissions.",
+      "id": "REQ-50",
+      "text": "Update the Admin Dashboard error UI to always display the most specific available failure reason (including non-standard errors) instead of the generic “Error loading inquiries. Please try again.”, and keep actions context-appropriate (Logout for auth-related failures; Retry for transient/non-auth failures).",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "recent-messages"
         ],
         "quotes": [
-          "After logging in, i should the see message and manage website",
-          "After logging in, should the old admin dashboard be fully restored, including the View/Delete/Mark as Read/Unread options, and Export options?"
+          "Error loading inquiries. Please try again.",
+          "Retry"
         ]
       },
       "acceptanceCriteria": [
-        "Visiting \"/admin\" while not officially logged in does not show any admin data and instead redirects to the homepage (or shows a simple disabled/unauthorized message).",
-        "After Official Login succeeds, the user is redirected to \"/admin\" automatically.",
-        "The admin dashboard displays inquiry submissions with: id, timestamp, inquiry type, name, phone number, optional email, message, optional service category, internal flag, and read/unread state.",
-        "Admin actions are available per inquiry: delete and toggle read/unread.",
-        "An export/download action is available that downloads inquiries in a common format (e.g., CSV or JSON)."
-      ]
-    },
-    {
-      "id": "REQ-24",
-      "text": "Update SPA routing behavior so \"/admin\" is no longer force-redirected to \"/\" when the user is officially logged in, while preserving the redirect/guard for non-logged-in users.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Current logic in frontend/src/App.tsx that unconditionally redirects \"/admin\" to \"/\" is replaced with a guard that allows \"/admin\" only when Official Login session is present.",
-        "\tThe marketing site remains the default view for \"/\" and other routes.",
-        "Both \"/admin\" and \"/admin/\" behave consistently (no admin page rendering when not logged in; admin renders when logged in)."
-      ]
-    },
-    {
-      "id": "REQ-25",
-      "text": "Update the static entrypoint at frontend/public/admin/index.html to no longer immediately redirect to \"/\" so that direct navigation to \"/admin\" can load the SPA and show the admin dashboard for an authenticated official session.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ]
-      },
-      "acceptanceCriteria": [
-        "frontend/public/admin/index.html no longer contains an unconditional JavaScript redirect to \"/\".",
-        "Direct navigation to \"/admin\" in a fresh tab loads the SPA; if not logged in it is guarded/redirected by the app, and if logged in it shows the admin dashboard."
-      ]
-    },
-    {
-      "id": "REQ-26",
-      "text": "Extend the Motoko backend (single actor in backend/main.mo) with access-controlled inquiry management APIs needed by the restored admin dashboard: list inquiries, delete inquiry, and set read/unread, plus an export-friendly retrieval method if needed by the frontend.",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Backend exposes a query to list inquiries (including all fields currently stored in Inquiry).",
-        "Backend exposes shared methods to delete an inquiry by id and to set an inquiry's read/unread status.",
-        "Backend methods enforce an authorization mechanism compatible with the Official Login flow (e.g., verifying the provided User ID and Password match exactly) before returning/modifying inquiry data.",
-        "Existing submitInquiry behavior remains unchanged and continues to store inquiries successfully."
-      ]
-    },
-    {
-      "id": "REQ-27",
-      "text": "Implement React Query hooks for the restored admin inquiry operations (list, mark read/unread, delete, export) and ensure the UI stays consistent by invalidating/refetching inquiries after mutations.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Admin dashboard uses React Query for fetching and mutations.",
-        "After delete or read/unread toggle, the inquiries list updates without requiring a full page refresh.",
-        "Export action uses the latest fetched data or fetches fresh data before download."
+        "When an admin inquiry fetch fails, the UI shows a human-readable error message derived from the actual thrown value (Error/message/string/object) whenever possible.",
+        "If the error reason indicates authorization failure (e.g., contains “Unauthorized” or “Only admins”), the primary recovery action presented is Logout (not Retry).",
+        "If the error is not authorization-related, the UI presents a Retry action that triggers a refetch."
       ]
     }
   ],
   "constraints": [
-    "Do not edit any immutable frontend paths listed in SYSTEM_CONTEXT (compose existing UI components instead).",
-    "Keep all Motoko logic in the single actor at backend/main.mo; only add backend/migration.mo if a state upgrade is required.",
-    "Credentials must match exactly: User ID \"K107182721\" and Password \"Karauli#34\".",
-    "Implement the Official Login as a custom local username/password flow; acknowledge it is not equivalent to Internet Identity security and should be treated as lightweight protection."
+    "Do not edit any files under frontend/src/components/ui (immutable UI components).",
+    "Backend must remain a single Motoko actor in backend/main.mo; do not introduce additional canisters/services.",
+    "Preserve the exact Official Login credentials: User ID \"K107172621\" and Password \"Karauli#34\".",
+    "Preserve the existing admin secret-token mechanism using the sessionStorage key \"caffeineAdminToken\"."
   ],
   "nonGoals": [
-    "Do not change the public marketing site content/sections beyond adding the single \"Official Login\" entry point.",
-    "Do not integrate third-party authentication providers (only custom local login for this request).",
-    "Do not add external databases or non-Motoko backend services."
+    "Adding new authentication providers (only the existing Official Login + token mechanism is in scope).",
+    "Adding new inquiry fields or changing the inquiry form schema.",
+    "Publishing to production/live as part of this change (focus only on fixing the inquiry loading issue)."
   ],
   "imageRequirements": {
     "required": [],

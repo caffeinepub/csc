@@ -1,21 +1,24 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 13,
-  "summary": "Website for “वैष्णवी ई-मित्र & CSC केन्द्र” (E-Mitra & CSC centre) in कोटा (माम), करौली, showcasing services/contact/inquiry form, and now additionally includes an “Official Login” (custom username/password) to access and restore the admin/management dashboard.",
+  "projectStateVersion": 33,
+  "summary": "Website for “वैष्णवी ई-मित्र & CSC केन्द्र” (E-Mitra & CSC centre) in कोटा (माम), करौली, showcasing services/contact/inquiry form, with an “Official Login” (custom username/password) that now uses User ID K107172621 (password unchanged) and should automatically open the admin/management dashboard after login, with additional admin features requested.",
   "architectural_notes": [
     "Site content/language: Hindi promotional content for Vaishnavi E-Mitra & CSC centre.",
     "Key business details to display: Operator Rahul Chavariya; phone/WhatsApp +91-7426049215; location/address in Kota (Mam), Karauli.",
     "Notification requirement clarified: notify only on new inquiry form submissions; preferred channel is email (WhatsApp requested but not supported on this platform).",
     "User requested removal of all Admin options (no /admin dashboard and no homepage Admin Login/Admin Access section).",
     "Reintroduce an admin/management area accessed via a custom local username/password (“Official Login”) on the homepage (note: not as secure as Internet Identity).",
-    "Login credentials specified by user: User ID K107182721; Password Karauli#34.",
     "Post-login should restore the previous admin dashboard features (inquiry management: view/delete/mark read-unread/export).",
-    "Logout/close-tab behavior requested: return to homepage and show only “Official Login” entry (hide public sections per latest confirmation)."
+    "Logout/close-tab behavior requested: return to homepage and show only “Official Login” entry (hide public sections per latest confirmation).",
+    "Official Login credentials updated per user: User ID K107172621; Password Karauli#34.",
+    "After successful Official Login, the app should automatically redirect to/open the admin dashboard (/admin).",
+    "User requested additional admin features after Official Login (not yet specified)."
   ],
   "known_issues": [
-    "Attempt to publish Draft Version 2 live/production encountered a deployment error; user requested to try going live again."
+    "Attempt to publish Draft Version 2 live/production encountered a deployment error; user requested to try going live again.",
+    "Production/live site: Admin Dashboard shows no inquiries (“अभी तक कोई पूछताछ नहीं है”); previously submitted live inquiries are missing and new test inquiry submissions are not appearing in the dashboard."
   ],
-  "isFixRequest": false,
+  "isFixRequest": true,
   "existing_features": [
     {
       "id": "feature-create-a-responsive-informational-website-for-csc-that-presents-the-business-name-tagline-location-operator-name-rahul-chavariya-and-contact-whatsapp-number-91-7426049215-using-the-user-provided-hindi-content-as-the-primary-copy",
@@ -208,6 +211,166 @@
         "REQ-27"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-update-the-hardcoded-official-login-user-id-to-exactly-k107172621-while-keeping-the-password-exactly-karauli-34-so-that-official-login-succeeds-only-with-the-new-credentials",
+      "title": "Update the hardcoded Official Login User ID to exactly \"K107172621\" while keeping the password exactly \"Karauli#34\" so that Official Login succeeds only with the new credentials.",
+      "reqIds": [
+        "REQ-28"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-that-after-a-successful-official-login-from-the-homepage-the-app-automatically-navigates-to-and-displays-the-admin-dashboard-at-route-admin-without-requiring-any-additional-clicks",
+      "title": "Ensure that after a successful Official Login from the homepage, the app automatically navigates to and displays the admin dashboard at route \"/admin\" without requiring any additional clicks.",
+      "reqIds": [
+        "REQ-29"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-additional-admin-only-inquiry-management-features-in-the-admin-dashboard-beyond-the-existing-per-inquiry-actions-delete-mark-read-unread-and-export-focused-on-faster-self-management-of-submissions",
+      "title": "Add additional admin-only inquiry management features in the admin dashboard beyond the existing per-inquiry actions (delete, mark read/unread) and export, focused on faster self-management of submissions.",
+      "reqIds": [
+        "REQ-30"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-publish-the-currently-deployed-preview-version-version-7-to-production-live-and-verify-the-live-deployment-loads-without-build-deploy-errors",
+      "title": "Publish the currently deployed preview version (Version 7) to production (live) and verify the live deployment loads without build/deploy errors.",
+      "reqIds": [
+        "REQ-31"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-publish-the-current-application-build-to-production-live",
+      "title": "Publish the current application build to production (live).",
+      "reqIds": [
+        "REQ-32"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-after-publishing-to-production-live-run-the-production-smoke-test-checklist-to-verify-that-the-homepage-official-login-flow-admin-gating-admin-dashboard-functions-public-inquiry-submission-and-deep-link-restoration-all-work-correctly",
+      "title": "After publishing to production (live), run the production smoke-test checklist to verify that the homepage, Official Login flow, /admin gating, admin dashboard functions, public inquiry submission, and deep-link restoration all work correctly.",
+      "reqIds": [
+        "REQ-33"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-the-authorization-mismatch-so-that-after-a-successful-official-login-the-frontend-actor-can-successfully-call-the-existing-admin-inquiry-apis-getallinquiries-setinquiryreadstatus-deleteinquiry-and-the-admin-dashboard-is-not-empty-due-to-unauthorized-only-admins-errors",
+      "title": "Fix the authorization mismatch so that after a successful Official Login, the frontend actor can successfully call the existing admin inquiry APIs (getAllInquiries, setInquiryReadStatus, deleteInquiry) and the Admin dashboard is not empty due to Unauthorized/Only admins errors.",
+      "reqIds": [
+        "REQ-34"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-frontend-official-login-flow-to-initialize-backend-access-control-in-the-same-browser-tab-session-by-persisting-and-using-the-existing-secret-admin-token-mechanism-caffeineadmintoken-via-sessionstorage-so-it-works-even-when-the-user-is-not-using-internet-identity",
+      "title": "Update the frontend Official Login flow to initialize backend access control in the same browser tab session by persisting and using the existing secret admin token mechanism (caffeineAdminToken) via sessionStorage, so it works even when the user is not using Internet Identity.",
+      "reqIds": [
+        "REQ-35"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-official-logout-fully-clears-the-official-login-session-and-any-stored-admin-token-so-that-returning-to-admin-redirects-back-to-the-homepage-and-admin-inquiries-cannot-be-fetched-after-logout",
+      "title": "Ensure Official Logout fully clears the Official Login session and any stored admin token so that returning to /admin redirects back to the homepage and admin inquiries cannot be fetched after logout.",
+      "reqIds": [
+        "REQ-36"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-make-the-admin-dashboard-show-a-clear-non-blank-error-state-when-inquiry-loading-fails-including-when-the-thrown-error-is-not-a-standard-error-with-a-message-so-the-user-always-sees-why-messages-are-not-visible",
+      "title": "Make the Admin dashboard show a clear, non-blank error state when inquiry loading fails (including when the thrown error is not a standard Error with a message), so the user always sees why messages are not visible.",
+      "reqIds": [
+        "REQ-37"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-the-official-login-admin-token-flow-so-that-after-logging-in-via-user-id-password-the-admin-dashboard-can-successfully-call-the-backend-admin-inquiry-apis-getallinquiries-setinquiryreadstatus-deleteinquiry-and-display-all-previously-submitted-inquiries-instead-of-always-showing-error-loading-inquiries",
+      "title": "Fix the Official Login + admin-token flow so that, after logging in via User ID/Password, the Admin Dashboard can successfully call the backend admin inquiry APIs (getAllInquiries, setInquiryReadStatus, deleteInquiry) and display all previously submitted inquiries instead of always showing “Error loading inquiries.”",
+      "reqIds": [
+        "REQ-38"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-actor-initialization-so-the-backend-access-control-secret-caffeineadmintoken-is-applied-even-when-the-user-is-not-using-internet-identity-i-e-when-creating-an-anonymous-actor-and-ensure-the-actor-is-recreated-refetched-when-the-official-login-token-changes-in-the-same-tab-session",
+      "title": "Update actor initialization so the backend access-control secret (caffeineAdminToken) is applied even when the user is not using Internet Identity (i.e., when creating an anonymous actor), and ensure the actor is recreated/refetched when the Official Login token changes in the same tab session.",
+      "reqIds": [
+        "REQ-39"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-actor-initialization-so-that-the-backend-admin-access-control-secret-sessionstorage-key-caffeineadmintoken-is-applied-even-when-the-user-is-not-using-internet-identity-anonymous-actor-and-ensure-the-actor-calls-the-backend-initializer-before-any-admin-inquiry-apis-are-invoked",
+      "title": "Fix actor initialization so that the backend admin access-control secret (sessionStorage key \"caffeineAdminToken\") is applied even when the user is not using Internet Identity (anonymous actor), and ensure the actor calls the backend initializer before any admin inquiry APIs are invoked.",
+      "reqIds": [
+        "REQ-41"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-the-frontend-actor-is-recreated-refetched-whenever-the-official-login-admin-token-changes-within-the-same-tab-session-e-g-on-successful-login-and-on-logout-so-react-query-hooks-always-use-an-actor-configured-with-the-current-token",
+      "title": "Ensure the frontend actor is recreated/refetched whenever the Official Login admin token changes within the same tab session (e.g., on successful login and on logout), so React Query hooks always use an actor configured with the current token.",
+      "reqIds": [
+        "REQ-42"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-admin-dashboard-error-handling-to-surface-the-exact-authorization-failure-message-returned-by-the-backend-when-present-and-provide-a-single-clear-recovery-action-logout-for-auth-failures-while-keeping-retry-for-non-auth-failures",
+      "title": "Update the Admin Dashboard error handling to surface the exact authorization failure message returned by the backend (when present) and provide a single clear recovery action (Logout) for auth failures, while keeping Retry for non-auth failures.",
+      "reqIds": [
+        "REQ-43"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-admin-dashboard-ui-so-that-when-there-are-no-inquiries-the-page-still-shows-clear-management-controls-at-minimum-a-refresh-button-instead-of-appearing-like-there-are-no-admin-options",
+      "title": "Update the Admin Dashboard UI so that when there are no inquiries, the page still shows clear management controls (at minimum a Refresh button) instead of appearing like there are no admin options.",
+      "reqIds": [
+        "REQ-46"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-run-the-production-smoke-test-checklist-items-relevant-to-inquiries-submit-a-new-inquiry-from-the-public-form-log-in-via-official-login-verify-the-inquiry-appears-in-admin-and-verify-mark-read-unread-and-delete-update-the-list-correctly",
+      "title": "Run the production smoke-test checklist items relevant to inquiries: submit a new inquiry from the public form, log in via Official Login, verify the inquiry appears in /admin, and verify mark read/unread and delete update the list correctly.",
+      "reqIds": [
+        "REQ-47"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-the-official-login-admin-token-authorization-flow-so-that-after-a-successful-official-login-the-admin-dashboard-can-successfully-fetch-and-display-all-inquiry-submissions-i-e-getallinquiries-must-succeed-and-return-stored-inquiries-without-showing-error-loading-inquiries-please-try-again",
+      "title": "Fix the Official Login admin-token authorization flow so that after a successful Official Login, the Admin Dashboard can successfully fetch and display all inquiry submissions (i.e., `getAllInquiries` must succeed and return stored inquiries) without showing “Error loading inquiries. Please try again.”",
+      "reqIds": [
+        "REQ-48"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-react-query-and-actor-initialization-reliably-re-run-when-the-official-login-token-changes-within-the-same-tab-session-so-admin-queries-always-use-an-actor-that-has-had-initializeaccesscontrolwithsecret-caffeineadmintoken-applied-before-any-admin-inquiry-api-calls",
+      "title": "Ensure React Query and actor initialization reliably re-run when the Official Login token changes within the same tab session, so admin queries always use an actor that has had `initializeAccessControlWithSecret(caffeineAdminToken)` applied before any admin inquiry API calls.",
+      "reqIds": [
+        "REQ-49"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-admin-dashboard-error-ui-to-always-display-the-most-specific-available-failure-reason-including-non-standard-errors-instead-of-the-generic-error-loading-inquiries-please-try-again-and-keep-actions-context-appropriate-logout-for-auth-related-failures-retry-for-transient-non-auth-failures",
+      "title": "Update the Admin Dashboard error UI to always display the most specific available failure reason (including non-standard errors) instead of the generic “Error loading inquiries. Please try again.”, and keep actions context-appropriate (Logout for auth-related failures; Retry for transient/non-auth failures).",
+      "reqIds": [
+        "REQ-50"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -260,6 +423,54 @@
       "summary": "Extend the Motoko backend (single actor in backend/main.mo) with access-controlled inquiry management APIs needed by the restored admin dashboard: list inquiries, delete inquiry, and set read/unread, plus an export-friendly retrieval method if needed by the frontend.",
       "reqIds": [
         "REQ-26"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-22",
+      "summary": "Update the Official Login credentials: change User ID to K107172621 (keep password Karauli#34).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-23",
+      "summary": "After successful Official Login, automatically redirect/open the admin dashboard (/admin) immediately (no extra click).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-24",
+      "summary": "Enable additional admin features after Official Login (beyond current inquiry management), details to be clarified.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-25",
+      "summary": "Publish the latest deployed version live/production (“Go live publish”).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-28",
+      "summary": "Ensure the backend secret-token authorization mechanism used by _initializeAccessControlWithSecret matches the frontend’s Official Login token value and results in the caller being treated as an admin for subsequent admin inquiry calls within the session.",
+      "reqIds": [
+        "REQ-40"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-29",
+      "summary": "Fix the Motoko backend so inquiry submissions are actually persisted and can be retrieved by the existing admin API getAllInquiries (i.e., after submitInquiry succeeds, getAllInquiries must return the submitted items).",
+      "reqIds": [
+        "REQ-44"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-30",
+      "summary": "Persist inquiries across canister upgrades so previously submitted inquiries are not lost when deploying a new version.",
+      "reqIds": [
+        "REQ-45"
       ],
       "status": "pending"
     }

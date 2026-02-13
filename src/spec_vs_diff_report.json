@@ -1,50 +1,37 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-12T19:45:12.985Z",
-  "summary": "Frontend adds an Official Login dialog with sessionStorage-based session state and updates routing to guard /admin, restores an admin dashboard UI with React Query-powered inquiry list/mutations and export utilities, and removes the static /admin redirect. Backend adds inquiry management APIs but enforces authorization via AccessControl admin principal checks rather than validating the Official Login credentials, so the Official Login flow is not actually compatible with backend authorization per the BuildRequest.",
+  "generatedAt": "2026-02-13T03:35:51.341Z",
+  "summary": "Diff adds centralized admin error utilities, updates admin actor and inquiries hooks to key off the admin token and initialize backend access control, and improves AdminPage error UI/actions. However, the diff does not show any change to the Official Login flow/token value that would ensure the backend’s expected secret matches what is stored in sessionStorage['caffeineAdminToken'], so the core authorization-flow fix may be incomplete based on provided evidence.",
   "missing_requirements": [
     {
-      "id": "REQ-26",
-      "requirement": "Backend methods enforce an authorization mechanism compatible with the Official Login flow (e.g., verifying the provided User ID and Password match exactly) before returning/modifying inquiry data.",
-      "reason": "The backend inquiry management APIs (getAllInquiries, setInquiryReadStatus, deleteInquiry) authorize solely via AccessControl.isAdmin(caller), with no credential parameters or validation against the required User ID/Password. The Official Login is implemented only in the frontend via sessionStorage and is not used by the backend for access control.",
+      "id": "REQ-48",
+      "requirement": "Fix the Official Login admin-token authorization flow so that after a successful Official Login, the Admin Dashboard can successfully fetch and display all inquiry submissions (getAllInquiries succeeds) without showing the generic error.",
+      "reason": "While admin token consumption and actor initialization were added, the diff provides no evidence that the Official Login sets sessionStorage['caffeineAdminToken'] to the backend-expected secret (backend now checks against a hardcoded ADMIN_SECRET). Without aligning the token value, getAllInquiries may still trap as Unauthorized even when a token exists.",
       "evidence": [
         "backend/main.mo",
-        "frontend/src/hooks/useOfficialLogin.ts",
+        "frontend/src/hooks/useAdminActor.ts",
         "frontend/src/hooks/useAdminInquiries.ts"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Backend authorization framework/mixin (AccessControl + MixinAuthorization) and principal-based admin gating for inquiry APIs.",
-      "reason": "BuildRequest asked for credential-based authorization compatible with the Official Login flow, not principal/role-based admin checks via an authorization mixin.",
-      "evidence": [
-        "backend/main.mo"
-      ]
-    },
-    {
-      "description": "Internet Identity-related component/config updates mentioned in file summaries (e.g., AdminLoginPrompt, useInternetIdentity changes).",
-      "reason": "Non-goals explicitly said not to integrate third-party authentication providers and the request centered on a custom local username/password flow; these II-related changes are not requested in REQ-21..REQ-27.",
+      "description": "Added/expanded admin features such as bulk export actions (JSON/CSV) and advanced inquiry list filtering/search functionality.",
+      "reason": "These features are described in the modified documentation/summary file but are not requested by REQ-48/49/50, which are scoped specifically to fixing admin inquiry loading, actor/token re-initialization, and error UI messaging/actions.",
       "evidence": [
         "frontend-file-summaries.txt"
       ]
     }
   ],
-  "confidence": 0.72,
+  "confidence": 0.62,
   "changed_files": [
     "backend/main.mo",
     "frontend-file-summaries.txt",
-    "frontend/public/admin/index.html",
-    "frontend/src/App.tsx",
-    "frontend/src/components/admin/InquiryActions.tsx",
-    "frontend/src/components/admin/InquiryList.tsx",
-    "frontend/src/components/admin/OfficialLoginDialog.tsx",
-    "frontend/src/components/sections/HeroSection.tsx",
+    "frontend/src/hooks/useAdminActor.ts",
     "frontend/src/hooks/useAdminInquiries.ts",
-    "frontend/src/hooks/useOfficialLogin.ts",
     "frontend/src/pages/AdminPage.tsx",
-    "frontend/src/utils/inquiryExport.ts",
+    "frontend/src/utils/adminError.ts",
     "project_state.json"
   ]
 }

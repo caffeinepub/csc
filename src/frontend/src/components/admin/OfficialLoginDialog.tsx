@@ -43,16 +43,15 @@ export default function OfficialLoginDialog({
         setUserId('');
         setPassword('');
         setError('');
-        onOpenChange(false);
         onSuccess();
       } else {
-        setError('अमान्य उपयोगकर्ता आईडी या पासवर्ड। कृपया पुनः प्रयास करें।');
+        setError('Invalid User ID or Password. Please try again.');
       }
     }, 500);
   };
 
   const handleOpenChange = (newOpen: boolean) => {
-    if (!newOpen) {
+    if (!newOpen && !isLoading) {
       setUserId('');
       setPassword('');
       setError('');
@@ -69,7 +68,7 @@ export default function OfficialLoginDialog({
             Official Login
           </DialogTitle>
           <DialogDescription>
-            कृपया अपनी उपयोगकर्ता आईडी और पासवर्ड दर्ज करें
+            Please enter your User ID and Password
           </DialogDescription>
         </DialogHeader>
 
@@ -88,7 +87,7 @@ export default function OfficialLoginDialog({
               type="text"
               value={userId}
               onChange={(e) => setUserId(e.target.value)}
-              placeholder="उपयोगकर्ता आईडी दर्ज करें"
+              placeholder="Enter User ID"
               required
               disabled={isLoading}
               autoComplete="username"
@@ -102,7 +101,7 @@ export default function OfficialLoginDialog({
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="पासवर्ड दर्ज करें"
+              placeholder="Enter Password"
               required
               disabled={isLoading}
               autoComplete="current-password"
@@ -117,10 +116,10 @@ export default function OfficialLoginDialog({
               disabled={isLoading}
               className="flex-1"
             >
-              रद्द करें
+              Cancel
             </Button>
             <Button type="submit" disabled={isLoading} className="flex-1">
-              {isLoading ? 'लॉगिन हो रहा है...' : 'लॉगिन करें'}
+              {isLoading ? 'Logging in...' : 'Login'}
             </Button>
           </div>
         </form>

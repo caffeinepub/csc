@@ -1,34 +1,42 @@
 import { useEffect } from 'react';
 import { useOfficialLogin } from '../hooks/useOfficialLogin';
 import { useGetAllInquiries } from '../hooks/useAdminInquiries';
+import { useQueryClient } from '@tanstack/react-query';
+import { navigateTo } from '../utils/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import InquiryList from '../components/admin/InquiryList';
 import { BulkExportActions } from '../components/admin/InquiryActions';
-import { LogOut, Loader2, AlertCircle, Inbox } from 'lucide-react';
+import { LogOut, Loader2, AlertCircle, Inbox, RefreshCw } from 'lucide-react';
 import BrandMark from '../components/BrandMark';
+import { getErrorMessage, isAuthorizationError } from '../utils/adminError';
 
 export default function AdminPage() {
   const { isOfficiallyLoggedIn, logout } = useOfficialLogin();
-  const { data: inquiries, isLoading, error, refetch } = useGetAllInquiries();
+  const { data: inquiries, isLoading, error, refetch, isFetching } = useGetAllInquiries();
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     if (!isOfficiallyLoggedIn) {
-      window.history.replaceState(null, '', '/');
-      window.location.href = '/';
+      navigateTo('/', true);
     }
   }, [isOfficiallyLoggedIn]);
 
   const handleLogout = () => {
+    // Clear all cached data
+    queryClient.clear();
     logout();
-    window.history.replaceState(null, '', '/');
-    window.location.href = '/';
+    navigateTo('/');
   };
 
   if (!isOfficiallyLoggedIn) {
     return null;
   }
+
+  // Extract error message and determine if it's an auth error
+  const errorMessage = error ? getErrorMessage(error) : '';
+  const isAuthError = error ? isAuthorizationError(error) : false;
 
   return (
     <div className="min-h-screen bg-background">
@@ -74,19 +82,39 @@ export default function AdminPage() {
             ) : error ? (
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
-                <AlertDescription>
-                  पूछताछ लोड करने में त्रुटि। कृपया पुनः प्रयास करें।
-                  <Button variant="outline" size="sm" onClick={() => refetch()} className="ml-4">
-                    पुनः प्रयास करें
-                  </Button>
+                <AlertDescription className="flex items-center justify-between">
+                  <span>{errorMessage}</span>
+                  <div className="flex gap-2 ml-4">
+                    {isAuthError ? (
+                      <Button variant="outline" size="sm" onClick={handleLogout}>
+                        Logout
+                      </Button>
+                    ) : (
+                      <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isFetching}>
+                        {isFetching ? 'Retrying...' : 'Retry'}
+                      </Button>
+                    )}
+                  </div>
                 </AlertDescription>
               </Alert>
             ) : inquiries && inquiries.length > 0 ? (
               <InquiryList inquiries={inquiries} />
             ) : (
-              <div className="text-center py-12 text-muted-foreground">
-                <Inbox className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>अभी तक कोई पूछताछ नहीं है</p>
+              <div className="text-center py-12">
+                <Inbox className="h-16 w-16 mx-auto mb-4 text-muted-foreground/50" />
+                <h3 className="text-lg font-semibold mb-2">No inquiries yet</h3>
+                <p className="text-muted-foreground mb-6">
+                  New inquiries submitted through the contact form will appear here.
+                </p>
+                <Button
+                  variant="outline"
+                  onClick={() => refetch()}
+                  disabled={isFetching}
+                  className="gap-2"
+                >
+                  <RefreshCw className={`h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />
+                  {isFetching ? 'Refreshing...' : 'Refresh'}
+                </Button>
               </div>
             )}
           </CardContent>
